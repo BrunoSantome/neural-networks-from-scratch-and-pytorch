@@ -19,7 +19,20 @@ def sigmoid(Z):
     return A, Z
 
 
-def sigmoid_backward(da, storage): ...
+def sigmoid_back_pass(da, Z):
+    """Sigmoid backward pass implementation with numpy
+
+    Args:
+    da(np.nparray) : nparray
+    Z(np.nparray) : nparray
+
+    Returns:
+    dZ (np.ndarray):
+        Gradient of the cost with respect to Z, same shape as Z.
+    """
+    A, _ = sigmoid(Z)
+    dZ = da * A * (1 - A)
+    return dZ
 
 
 def relu(Z):
@@ -38,7 +51,21 @@ def relu(Z):
     return A, Z
 
 
-def relu_back_pass(da, storage): ...
+def relu_back_pass(da, Z):
+    """Relu backward pass implementation with numpy
+
+    Args:
+    da(np.nparray) : nparray
+    Z(np.nparray) : nparray
+
+    Returns:
+    dZ (np.ndarray):
+        Gradient of the cost with respect to Z, same shape as Z.
+    """
+    dZ = np.array(da, copy=True)
+    if dZ[Z] <= 0:
+        dZ[Z] = 0
+    return dZ
 
 
 def softmax(Z):
@@ -58,4 +85,17 @@ def softmax(Z):
     return A, Z
 
 
-def softmax_back_pass(da, storage): ...
+def softmax_back_pass(da, Z):
+    """Softmax backward pass implementation with numpy
+
+    Args:
+    da(np.nparray) : nparray
+    Z(np.nparray) : nparray
+
+    Returns:
+    dZ (np.ndarray):
+        Gradient of the cost with respect to Z, same shape as Z.
+    """
+    A, _ = softmax(Z)
+    dZ = A * (da - np.sum(da * A))
+    return dZ
