@@ -71,5 +71,7 @@ class NeuronalNetwork:
 
     def update_param(self):
         ...
+        # input: dw[l], db[l], parameters: ( W[l], b[l])
         # W[l] -= learning_rate*dW[l]
         # b[l] -= learning_rate*db[l]
+        # output parameters: W[l], b[l] (updated)
