@@ -6,13 +6,13 @@ def sigmoid(Z):
     """Sigmoid forward pass implementation with numpy
 
     Args:
-    Z(np.nparray) : nparray
+    Z(np.ndarray) : ndarray
 
     Returns:
     A (np.ndarray):
         Result of sigmoid, same shape as Z.
     Z (np.ndarray):
-       the input nparray Z, usefull for backward prop
+       the input ndarray Z, usefull for backward prop
     """
 
     A = 1 / (1 + np.exp(-Z))
@@ -23,8 +23,8 @@ def sigmoid_back_pass(da, Z):
     """Sigmoid backward pass implementation with numpy
 
     Args:
-    da(np.nparray) : nparray
-    Z(np.nparray) : nparray
+    da(np.ndarray) : post-activation gradient
+    Z(np.ndarray) : ndarray
 
     Returns:
     dZ (np.ndarray):
@@ -39,13 +39,13 @@ def relu(Z):
     """Relu forward pass implementation with numpy
 
     Args:
-    Z(np.nparray) : nparray
+    Z(np.ndarray) : ndarray
 
     Returns:
     A (np.ndarray):
         Result of ReLu, same shape as Z.
     Z (np.ndarray):
-       the input nparray Z, usefull for backward prop
+       the input ndarray Z, usefull for backward prop
     """
     A = np.maximum(0, Z)
     return A, Z
@@ -55,8 +55,8 @@ def relu_back_pass(da, Z):
     """Relu backward pass implementation with numpy
 
     Args:
-    da(np.nparray) : nparray
-    Z(np.nparray) : nparray
+    da(np.ndarray) : post-activation gradient
+    Z(np.ndarray) : ndarray
 
     Returns:
     dZ (np.ndarray):
@@ -72,13 +72,13 @@ def softmax(Z):
     """Softmax forward pass implementation with numpy
 
     Args:
-        Z (np.nparray): nparray
+        Z (np.ndarray): ndarray
 
     Returns:
     A (np.ndarray):
         Result of softmax, same shape as Z.
     Z (np.ndarray):
-        the input nparray Z, usefull for backward prop
+        the input ndarray Z, usefull for backward prop
 
     """
     A = np.exp(Z) / np.sum(np.exp(Z))
@@ -89,8 +89,8 @@ def softmax_back_pass(da, Z):
     """Softmax backward pass implementation with numpy
 
     Args:
-    da(np.nparray) : nparray
-    Z(np.nparray) : nparray
+    da(np.ndarray) : post-activation gradient
+    Z(np.ndarray) : ndarray
 
     Returns:
     dZ (np.ndarray):
