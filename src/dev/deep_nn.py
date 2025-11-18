@@ -22,6 +22,7 @@ class NeuronalNetwork:
         output_activation="sigmoid",
         dropout=False,
         batch_size=1,
+        loss_function="classification_cross_entropy",
     ):
         self.num_layers_units = layers_units
         self.num_layers = len(layers_units)
@@ -34,6 +35,7 @@ class NeuronalNetwork:
         self.batch_size = batch_size
         self.param = {}
         self.storage_layers = []
+
         # self.init_param() only called when the data is fitted into the model (to fit dimension of first input layer)
 
     def init_param(self):
@@ -98,21 +100,31 @@ class NeuronalNetwork:
 
         return activation_output
 
-    def loss_calc(self):
-        ...
-        # Loss(y', y)
+    def loss_calc_MSE(self, activation_last, y):
+        # Loss(y', y) Mean Squarred Error
         # By calculating the derivative, and vectorize it,
         # it is the input for the start of the backward pass. so da[-1]
         # check pseudo code for the loss function, cross-entropy for classification
+        loss = np.mean((y - activation_last) ** 2)
+        return loss
+
+    def loss_calc_CCE(self, activation_last, y):
+        # Classification Cross Entropy
+        loss = -np.mean(
+            (y * np.log(activation_last)) + ((1 - y) * np.log(1 - activation_last))
+        )
+        return loss
 
     def backward_pass(self):
-        ...
+        
         # input da[l], storage: (z[l], W[l], b[l])).
         # dz[l] = da[l] * g[l]'(z[l])
         # dw[l] = 1/m * dz[l]. a[l-1].T
         # db[l] = 1/m * dz[l]
         # da[l] = W[l].T* dz[l]
         # output: da[l-1] dw[l], db[l]
+        
+        
 
     def update_param(self):
         ...
