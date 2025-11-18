@@ -30,8 +30,30 @@ class dnn_tests(unittest.TestCase):
         NNTest2.init_param()
         print(NNTest2.forward_pass(X))
 
+    def test_cost_CCE(self):
+        np.random.seed(42)
+        num_values = 2
+        X = np.random.randn(num_values, 3)
+
+        nn_architecture1 = [num_values, 4, 1]
+        NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
+        NNTest2.init_param()
+
+    def tests_backward_pass(self):
+        np.random.seed(42)
+        num_values = 2
+        features = 3
+        X = np.random.randn(num_values, features)
+        y = np.random.randn(num_values, 1)
+        nn_architecture1 = [features, 4, 1]
+        NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
+        NNTest2.init_param()
+        activation_last = NNTest2.forward_pass(X)
+        NNTest2.backward_pass(activation_last, y)
+
 
 if __name__ == "__main__":
     Tests = dnn_tests()
     # Tests.test_init_param()
-    Tests.test_forward_pass()
+    # Tests.test_forward_pass()
+    Tests.tests_backward_pass()

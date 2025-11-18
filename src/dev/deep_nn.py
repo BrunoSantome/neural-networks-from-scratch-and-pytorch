@@ -33,7 +33,9 @@ class NeuronalNetwork:
         self.output_activation = output_activation
         self.dropout = dropout
         self.batch_size = batch_size
+        self.loss_function = loss_function
         self.param = {}
+        self.gradients = {}
         self.storage_layers = []
 
         # self.init_param() only called when the data is fitted into the model (to fit dimension of first input layer)
@@ -115,16 +117,44 @@ class NeuronalNetwork:
         )
         return loss
 
-    def backward_pass(self):
-        
-        # input da[l], storage: (z[l], W[l], b[l])).
+    def backward_pass_hidden_single(self, dA): ...
+
+    def backward_pass_calc(self, dZ, storage):
+        _, W, _, activation_last = storage
+        print(W.shape)
+        print(dZ.shape)
+        n = activation_last.shape[1]
+        dW = 1 / n * dZ.dot(activation_last.T)
+        db = 1 / n * np.sum(dZ, axis=1)  # Check this
+        da = W.T.dot(dZ)  # There is a problem with the dimension of dZ
+        return da, dW, db
+
+    def backward_pass(self, activation_first, y):
+        # input a[l-1], y, storage: (z[l], W[l], b[l], a[l-1])).
+        # da[l] = a[l-1] - Y
         # dz[l] = da[l] * g[l]'(z[l])
         # dw[l] = 1/m * dz[l]. a[l-1].T
         # db[l] = 1/m * dz[l]
         # da[l] = W[l].T* dz[l]
         # output: da[l-1] dw[l], db[l]
-        
-        
+
+        # Backward propagation init
+        if self.loss_function == "MSE" and self.output_activation == "softmax":
+            ...  # Ask if necessary to contemplate this case.
+        else:
+            print(activation_first.shape)
+            print(y.shape)
+            dZ = (
+                activation_first - y
+            )  # simplification of the product of derivative of the loss and derivative of the output_activation function
+
+        layers = self.num_layers - 1
+        print(layers)
+        print(self.storage_layers[0])
+        print(" s")
+        print(self.storage_layers[1])
+        self.backward_pass_calc(dZ, self.storage_layers[layers - 1])
+        # for l in reversed(range(layers - 1)):
 
     def update_param(self):
         ...
