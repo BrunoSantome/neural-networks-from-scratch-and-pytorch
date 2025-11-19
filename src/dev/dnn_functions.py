@@ -63,8 +63,8 @@ def relu_back_pass(da, Z):
         Gradient of the cost with respect to Z, same shape as Z.
     """
     dZ = np.array(da, copy=True)
-    if dZ[Z] <= 0:
-        dZ[Z] = 0
+    dZ[Z <= 0] = 0
+
     return dZ
 
 

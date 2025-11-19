@@ -21,30 +21,43 @@ class dnn_tests(unittest.TestCase):
         parameters = NNTest.init_param()
 
     def test_forward_pass(self):
+        # Question what convention should we use, (n of examples, features) or (features, n of examples) for input?
         np.random.seed(42)
         num_values = 2
-        X = np.random.randn(num_values, 3)
+        X = np.random.randn(3, 2)
         # print(X)
-        nn_architecture1 = [num_values, 4, 4, 5, 1]
+        nn_architecture1 = [2, 4, 1]
         NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
         NNTest2.init_param()
-        print(NNTest2.forward_pass(X))
+        print(NNTest2.forward_pass(X).shape)
 
     def test_cost_CCE(self):
         np.random.seed(42)
         num_values = 2
         X = np.random.randn(num_values, 3)
 
-        nn_architecture1 = [num_values, 4, 1]
+        nn_architecture1 = [4, 4, 1]
         NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
         NNTest2.init_param()
 
-    def tests_backward_pass(self):
+    def tests_backward_pass_first_layer(self):
         np.random.seed(42)
-        num_values = 2
-        features = 3
+        num_values = 3
+        features = 2
         X = np.random.randn(num_values, features)
-        y = np.random.randn(num_values, 1)
+        y = np.random.randn(1, num_values).T
+        nn_architecture1 = [features, 4, 1]
+        NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
+        NNTest2.init_param()
+        activation_last = NNTest2.forward_pass(X)
+        NNTest2.backward_pass(activation_last, y)
+
+    def tests_backward_pass_hidden_layers(self):
+        np.random.seed(42)
+        num_values = 3
+        features = 2
+        X = np.random.randn(num_values, features)
+        y = np.random.randn(1, num_values).T  # Still dont understand why the transpose.
         nn_architecture1 = [features, 4, 1]
         NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
         NNTest2.init_param()
@@ -56,4 +69,5 @@ if __name__ == "__main__":
     Tests = dnn_tests()
     # Tests.test_init_param()
     # Tests.test_forward_pass()
-    Tests.tests_backward_pass()
+    # Tests.tests_backward_pass_first_layer()
+    Tests.tests_backward_pass_hidden_layers()
