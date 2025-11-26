@@ -16,7 +16,7 @@ class NeuronalNetwork:
         self,
         layers_units,
         epoch=20,
-        learning_rate=0.01,
+        learning_rate=0.1,
         seed=42,
         hidden_activation="relu",
         output_activation="sigmoid",
@@ -52,12 +52,23 @@ class NeuronalNetwork:
         # Weights: (4,8), (8,4), (4,1), (4,1)
         for l in range(1, len(self.num_layers_units)):
             # Dimensions of Wl: (n[l-1], n[l]) ==> it is the same for dWl (for backward pass)
-            self.param[f"W{l}"] = (
-                np.random.rand(self.num_layers_units[l - 1], self.num_layers_units[l])
-                * 0.01
+            self.param[f"W{l}"] = np.random.rand(
+                self.num_layers_units[l - 1], self.num_layers_units[l]
             )
             # Dimensions of bl: ( 1, n[l],) ==> it is the same for dbl (for backward pass)
-            self.param[f"b{l}"] = np.zeros((1, self.num_layers_units[l])) * 0.01
+            self.param[f"b{l}"] = np.zeros((1, self.num_layers_units[l]))
+
+    def dropout(self, activation):
+        mask = (np.random.rand(*activation.shape) > self.dropout_rate).astype(float) / (
+            1 - self.dropout_rate
+        )
+        activation_dropout = activation * mask  # Scaling down.
+        self.dropout_masks.append(mask)
+        return activation_dropout
+
+    def inverted_dropout(self, da, layer):
+        da *= self.dropout_masks[layer - 1]
+        return da
 
     def forward_pass_hidden_single(self, activation_last, W, b):
         Z = np.dot(activation_last, W) + b
@@ -67,14 +78,7 @@ class NeuronalNetwork:
             # It might not be useful to return the Z value too.
             activation_current, Z = sigmoid(Z)
         if self.dropout_rate:
-            mask = (
-                np.random.rand(*activation_current.shape) > self.dropout_rate
-            ).astype(float) / (1 - self.dropout_rate)
-            activation_current_dropout = (
-                activation_current * mask  # Scaling down.
-            )
-            self.dropout_masks.append(mask)
-            return activation_current_dropout, (Z, W, b, activation_last)
+            return self.dropout(activation_current), (Z, W, b, activation_last)
         return activation_current, (Z, W, b, activation_last)
 
     def forward_pass_output_layer(self, activation_last, W, b):
@@ -135,7 +139,7 @@ class NeuronalNetwork:
         db = 1 / m * np.sum(dZ, axis=0, keepdims=True)  # Check this
         da = dZ.dot(W.T)
         if self.dropout_rate and layer != 0:  # Not the input layer.
-            da *= self.dropout_masks[layer - 1]  #
+            da = self.inverted_dropout(da, layer)
         return da, dW, db
 
     def backward_pass_hidden_single(self, da, layer):
@@ -173,7 +177,6 @@ class NeuronalNetwork:
                 self.gradients[f"dW{i + 1}"],
                 self.gradients[f"db{i + 1}"],
             ) = self.backward_pass_hidden_single(da, i)
-
         # for l in reversed(range(layers - 1)):
 
     def update_param(self):
@@ -181,6 +184,7 @@ class NeuronalNetwork:
         # W[l] -= learning_rate*dW[l]
         # b[l] -= learning_rate*db[l]
         # output parameters: W[l], b[l] (updated)
-        for i in range(1, self.num_layers):
+        for i in range(1, self.num_layers + 1):
+            # print(f"this is the example {i}: {self.param[f'W{i}']}")
             self.param[f"W{i}"] -= self.learning_rate * self.gradients[f"dW{i}"]
             self.param[f"b{i}"] -= self.learning_rate * self.gradients[f"db{i}"]
