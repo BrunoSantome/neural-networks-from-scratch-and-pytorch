@@ -19,7 +19,7 @@ class NeuronalNetwork:
         learning_rate=0.1,
         seed=42,
         hidden_activation="relu",
-        output_activation="sigmoid",
+        output_activation="softmax",
         dropout_rate=0,
         batch_size=1,
         loss_function="classification_cross_entropy",
@@ -124,11 +124,17 @@ class NeuronalNetwork:
         loss = np.mean((y - activation_last) ** 2)
         return loss
 
-    def loss_calc_CCE(self, activation_last, y):
-        # Classification Cross Entropy
+    def loss_calc_BCE(self, activation_last, y):
+        # Binary Cross Entropy
         loss = -np.mean(
-            (y * np.log(activation_last)) + ((1 - y) * np.log(1 - activation_last))
+            (y * np.log(activation_last + 1e-8))
+            + ((1 - y) * np.log(1 - activation_last + 1e-8))
         )
+        return loss
+
+    def loss_calc_CCE(self, activation_last, y):
+        # Categorical Cross Entropy
+        loss = -np.mean(np.sum(y * np.log(activation_last + 1e-8), axis=1))
         return loss
 
     def backward_pass_calc(self, dZ, layer):
@@ -160,7 +166,6 @@ class NeuronalNetwork:
         # da[l] = W[l].T* dz[l]
         # output: da[l-1] dw[l], db[l]
         # Backward propagation init.
-
         dZ = activation_first - y
         # simplification of the product of derivative of the loss with respect to the output activation function
         # This works for BCE or CCE and sigmoid or softmax as output activation function.
@@ -177,7 +182,6 @@ class NeuronalNetwork:
                 self.gradients[f"dW{i + 1}"],
                 self.gradients[f"db{i + 1}"],
             ) = self.backward_pass_hidden_single(da, i)
-        # for l in reversed(range(layers - 1)):
 
     def update_param(self):
         # input: dw[l], db[l], parameters: ( W[l], b[l])
