@@ -133,7 +133,7 @@ class dnn_tests(unittest.TestCase):
         y_onehot = np.eye(2)[y_clf.ravel()]  # transform output so it accepts CCE
         nn_architecture1 = [X_clf.shape[1], 8, 2]
         NNTest2 = NeuronalNetwork(
-            nn_architecture1, seed=42, output_activation="softmax"
+            nn_architecture1, seed=42, output_activation="softmax", learning_rate=0.01
         )
         NNTest2.init_param()
         losses = []
@@ -149,6 +149,27 @@ class dnn_tests(unittest.TestCase):
         # plt.title("Loss without Dropout")
         # plt.show()
 
+    def test_dataset_BCE_Regularisation(self, epoch):
+        # This uses Binary cross entropy and sigmoid, It cannot use softmax.
+        X_clf, y_clf = make_moons(n_samples=300, noise=0.15, random_state=1)
+        y_clf = y_clf.reshape(-1, 1)
+        nn_architecture1 = [X_clf.shape[1], 8, 1]
+        NNTest2 = NeuronalNetwork(
+            nn_architecture1, lambda_l1=0.001, lambda_l2=0.001, seed=42
+        )
+        NNTest2.init_param()
+        losses = []
+        for i in range(epoch):
+            activation_last = NNTest2.forward_pass(X_clf)
+            loss = NNTest2.loss_calc_BCE(activation_last, y_clf)
+            losses.append(loss)
+            NNTest2.backward_pass(activation_last, y_clf)
+            NNTest2.update_param()
+        print(losses[-1])
+        plt.plot(losses)
+        plt.title("Loss without Dropout")
+        plt.show()
+
 
 if __name__ == "__main__":
     Tests = dnn_tests()
@@ -160,4 +181,5 @@ if __name__ == "__main__":
     # Tests.tests_network_with_epoch_dropout(100, 0.2)
     # Tests.test_dataset(4000, 0.4)
     # Tests.test_cost_CCE()
-    Tests.test_dataset_CCE(4000, 0.4)
+    # Tests.test_dataset_CCE(4000, 0.4)
+    Tests.test_dataset_BCE_Regularisation(3000)

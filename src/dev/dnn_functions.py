@@ -81,6 +81,11 @@ def softmax(Z):
         the input ndarray Z, usefull for backward prop
 
     """
+
+    """
+    Numerical issues on tests, when calculating the loss it explodes "np.exp(Z)" this becomes very large or very small 
+    When I then do the log() it produces a nan value, a very high or small number
+    """
     A = np.exp(Z) / np.sum(np.exp(Z))
     return A, Z
 

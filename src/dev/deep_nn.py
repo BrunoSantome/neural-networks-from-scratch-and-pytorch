@@ -19,8 +19,10 @@ class NeuronalNetwork:
         learning_rate=0.1,
         seed=42,
         hidden_activation="relu",
-        output_activation="softmax",
+        output_activation="sigmoid",
         dropout_rate=0,
+        lambda_l1=0.0,
+        lambda_l2=0.0,
         batch_size=1,
         loss_function="classification_cross_entropy",
     ):
@@ -32,6 +34,8 @@ class NeuronalNetwork:
         self.hidden_activation = hidden_activation
         self.output_activation = output_activation
         self.dropout_rate = dropout_rate
+        self.lambda_l1 = lambda_l1
+        self.lambda_l2 = lambda_l2
         self.batch_size = batch_size
         self.loss_function = loss_function
         self.param = {}
@@ -125,16 +129,29 @@ class NeuronalNetwork:
         return loss
 
     def loss_calc_BCE(self, activation_last, y):
-        # Binary Cross Entropy
+        # Binary Cross Entropy with L1 and L2 regularisation
         loss = -np.mean(
             (y * np.log(activation_last + 1e-8))
             + ((1 - y) * np.log(1 - activation_last + 1e-8))
         )
+
+        if self.lambda_l1 or self.lambda_l2:
+            l1_loss = 0
+            l2_loss = 0
+            for l in range(1, len(self.num_layers_units)):
+                if self.lambda_l1:
+                    l1_loss += np.sum(np.abs(self.param[f"W{l}"]))
+                if self.lambda_l2:
+                    l2_loss += np.sum((self.param[f"W{l}"]) ** 2)
+            l1_loss *= self.lambda_l1
+            l2_loss *= self.lambda_l2
+            loss += l1_loss + l2_loss
         return loss
 
     def loss_calc_CCE(self, activation_last, y):
         # Categorical Cross Entropy
         loss = -np.mean(np.sum(y * np.log(activation_last + 1e-8), axis=1))
+
         return loss
 
     def backward_pass_calc(self, dZ, layer):
@@ -142,6 +159,11 @@ class NeuronalNetwork:
         _, W, _, activation_last = storage
         m = activation_last.shape[0]
         dW = 1 / m * activation_last.T.dot(dZ)  # a1.T.dot(a2_delta)
+        # L1 and L2 Regularisation
+        if self.lambda_l1:
+            dW += self.lambda_l1 * np.sign(W)
+        if self.lambda_l2:
+            dW += self.lambda_l2 * 2 * W
         db = 1 / m * np.sum(dZ, axis=0, keepdims=True)  # Check this
         da = dZ.dot(W.T)
         if self.dropout_rate and layer != 0:  # Not the input layer.
