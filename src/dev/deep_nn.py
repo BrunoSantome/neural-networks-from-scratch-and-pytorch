@@ -24,7 +24,7 @@ class NeuronalNetwork:
         lambda_l1=0.0,
         lambda_l2=0.0,
         batch_size=1,
-        loss_function="classification_cross_entropy",
+        loss_function="CCE",
     ):
         self.num_layers_units = layers_units
         self.num_layers = len(layers_units) - 1
@@ -122,7 +122,6 @@ class NeuronalNetwork:
         # Loss(y', y) Mean Squarred Error
         # By calculating the derivative, and vectorize it,
         # it is the input for the start of the backward pass. so da[-1]
-        # check pseudo code for the loss function, cross-entropy for classification
         loss = np.mean((y - activation_last) ** 2)
         return loss
 
@@ -214,6 +213,5 @@ class NeuronalNetwork:
         # b[l] -= learning_rate*db[l]
         # output parameters: W[l], b[l] (updated)
         for i in range(1, self.num_layers + 1):
-            # print(f"this is the example {i}: {self.param[f'W{i}']}")
             self.param[f"W{i}"] -= self.learning_rate * self.gradients[f"dW{i}"]
             self.param[f"b{i}"] -= self.learning_rate * self.gradients[f"db{i}"]

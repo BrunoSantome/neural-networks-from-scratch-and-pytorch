@@ -1,5 +1,6 @@
 import math
 import numpy as np
+import matplotlib.pyplot as plt
 
 
 def sigmoid(Z):
@@ -106,3 +107,9 @@ def softmax_back_pass(da, Z):
     A, _ = softmax(Z)
     dZ = A * (da - np.sum(da * A))
     return dZ
+
+
+def plot_loss(losses, title):
+    plt.plot(losses)
+    plt.title(title)
+    plt.show()

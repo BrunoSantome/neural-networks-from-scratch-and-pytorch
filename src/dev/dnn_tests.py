@@ -3,6 +3,8 @@ import matplotlib.pyplot as plt
 import unittest
 from deep_nn import NeuronalNetwork
 from sklearn.datasets import make_moons
+import numpy as np
+import pandas as pd
 from dnn_functions import (
     sigmoid,
     relu,
@@ -10,7 +12,9 @@ from dnn_functions import (
     sigmoid_back_pass,
     relu_back_pass,
     softmax_back_pass,
+    plot_loss,
 )
+import preprocessing.preprocessing as prep
 
 
 class dnn_tests(unittest.TestCase):
@@ -133,7 +137,12 @@ class dnn_tests(unittest.TestCase):
         y_onehot = np.eye(2)[y_clf.ravel()]  # transform output so it accepts CCE
         nn_architecture1 = [X_clf.shape[1], 8, 2]
         NNTest2 = NeuronalNetwork(
-            nn_architecture1, seed=42, output_activation="softmax", learning_rate=0.01
+            nn_architecture1,
+            seed=42,
+            lambda_l1=0.001,
+            lambda_l2=0.001,
+            output_activation="softmax",
+            learning_rate=0.01,
         )
         NNTest2.init_param()
         losses = []
@@ -143,8 +152,8 @@ class dnn_tests(unittest.TestCase):
             losses.append(loss)
             NNTest2.backward_pass(activation_last, y_onehot)
             NNTest2.update_param()
-        print(losses)
         # Problems with softmax function. Check loss increases and becomes nan.
+        print(losses[-1])
         plt.plot(losses)
         plt.title("Loss CCE")
         plt.show()
@@ -154,9 +163,7 @@ class dnn_tests(unittest.TestCase):
         X_clf, y_clf = make_moons(n_samples=300, noise=0.15, random_state=1)
         y_clf = y_clf.reshape(-1, 1)
         nn_architecture1 = [X_clf.shape[1], 8, 1]
-        NNTest2 = NeuronalNetwork(
-            nn_architecture1, lambda_l1=0.0001, lambda_l2=0.0001, seed=42
-        )
+        NNTest2 = NeuronalNetwork(nn_architecture1, lambda_l2=0.001, seed=42)
         NNTest2.init_param()
         losses = []
         for i in range(epoch):
@@ -170,6 +177,39 @@ class dnn_tests(unittest.TestCase):
         plt.title("Loss without Dropout")
         plt.show()
 
+    def test_dataset_space_classification(self, epoch):
+        X_train, y_train, X_test, y_test = (
+            prep.load_and_preprocess_data_spacial_objects()
+        )
+        nn_architecture1 = [X_train.shape[1], 16, 8, 3]
+        y_train_onehot = np.eye(3)[y_train.ravel()]
+        y_test_onehot = np.eye(3)[y_test.ravel()]
+        NNtest = NeuronalNetwork(
+            nn_architecture1,
+            seed=42,
+            hidden_activation="relu",
+            output_activation="softmax",
+            learning_rate=0.01,
+            loss_function="CCE",
+        )
+        NNtest.init_param()
+        losses = []
+        for i in range(epoch):
+            activation_last = NNtest.forward_pass(X_train)
+            loss = NNtest.loss_calc_CCE(activation_last, y_train_onehot)
+            losses.append(loss)
+            if i % 100 == 0:
+                print(f"Epoch {i}, loss: {loss}")
+            NNtest.backward_pass(activation_last, y_train_onehot)
+            NNtest.update_param()
+        # Test accuracy
+        activation_test = NNtest.forward_pass(X_test)
+        predictions = np.argmax(activation_test, axis=1)
+        y_test_labels = np.argmax(y_test_onehot, axis=1)
+        accuracy = np.mean(predictions == y_test_labels)
+        print(f"Test accuracy: {accuracy}")
+        plot_loss(losses, "Loss on Stellar Object Classification Dataset")
+
 
 if __name__ == "__main__":
     Tests = dnn_tests()
@@ -180,5 +220,6 @@ if __name__ == "__main__":
     # Tests.tests_network_with_epoch(10000)
     # Tests.tests_network_with_epoch_dropout(100, 0.2)
     # Tests.test_dataset(4000, 0.4)
-    Tests.test_dataset_CCE(4000, 0.4)
+    # Tests.test_dataset_CCE(4000, 0.4)
     # Tests.test_dataset_BCE_Regularisation(3000)
+    Tests.test_dataset_space_classification(4000)
