@@ -145,9 +145,9 @@ class dnn_tests(unittest.TestCase):
             NNTest2.update_param()
         print(losses)
         # Problems with softmax function. Check loss increases and becomes nan.
-        # plt.plot(losses)
-        # plt.title("Loss without Dropout")
-        # plt.show()
+        plt.plot(losses)
+        plt.title("Loss CCE")
+        plt.show()
 
     def test_dataset_BCE_Regularisation(self, epoch):
         # This uses Binary cross entropy and sigmoid, It cannot use softmax.
@@ -155,7 +155,7 @@ class dnn_tests(unittest.TestCase):
         y_clf = y_clf.reshape(-1, 1)
         nn_architecture1 = [X_clf.shape[1], 8, 1]
         NNTest2 = NeuronalNetwork(
-            nn_architecture1, lambda_l1=0.001, lambda_l2=0.001, seed=42
+            nn_architecture1, lambda_l1=0.0001, lambda_l2=0.0001, seed=42
         )
         NNTest2.init_param()
         losses = []
@@ -180,6 +180,5 @@ if __name__ == "__main__":
     # Tests.tests_network_with_epoch(10000)
     # Tests.tests_network_with_epoch_dropout(100, 0.2)
     # Tests.test_dataset(4000, 0.4)
-    # Tests.test_cost_CCE()
-    # Tests.test_dataset_CCE(4000, 0.4)
-    Tests.test_dataset_BCE_Regularisation(3000)
+    Tests.test_dataset_CCE(4000, 0.4)
+    # Tests.test_dataset_BCE_Regularisation(3000)
