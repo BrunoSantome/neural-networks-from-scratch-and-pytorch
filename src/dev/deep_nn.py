@@ -52,8 +52,6 @@ class NeuronalNetwork:
         Returns:
             param: dictionary that contains all the weights and bias initialized randomely
         """
-        # example of layers: [4,8,4,1]
-        # Weights: (4,8), (8,4), (4,1), (4,1)
         for l in range(1, len(self.num_layers_units)):
             # Dimensions of Wl: (n[l-1], n[l]) ==> it is the same for dWl (for backward pass)
             self.param[f"W{l}"] = np.random.rand(
@@ -128,6 +126,19 @@ class NeuronalNetwork:
         loss = np.mean((y - activation_last) ** 2)
         return loss
 
+    def apply_regularisation(self, loss):
+        l1_loss = 0
+        l2_loss = 0
+        for l in range(1, len(self.num_layers_units)):
+            if self.lambda_l1:
+                l1_loss += np.sum(np.abs(self.param[f"W{l}"]))
+            if self.lambda_l2:
+                l2_loss += np.sum((self.param[f"W{l}"]) ** 2)
+        l1_loss *= self.lambda_l1
+        l2_loss *= self.lambda_l2
+        loss += l1_loss + l2_loss
+        return loss
+
     def loss_calc_BCE(self, activation_last, y):
         # Binary Cross Entropy with L1 and L2 regularisation
         loss = -np.mean(
@@ -136,22 +147,14 @@ class NeuronalNetwork:
         )
 
         if self.lambda_l1 or self.lambda_l2:
-            l1_loss = 0
-            l2_loss = 0
-            for l in range(1, len(self.num_layers_units)):
-                if self.lambda_l1:
-                    l1_loss += np.sum(np.abs(self.param[f"W{l}"]))
-                if self.lambda_l2:
-                    l2_loss += np.sum((self.param[f"W{l}"]) ** 2)
-            l1_loss *= self.lambda_l1
-            l2_loss *= self.lambda_l2
-            loss += l1_loss + l2_loss
+            return self.apply_regularisation(loss)
         return loss
 
     def loss_calc_CCE(self, activation_last, y):
         # Categorical Cross Entropy
         loss = -np.mean(np.sum(y * np.log(activation_last + 1e-8), axis=1))
-
+        if self.lambda_l1 or self.lambda_l2:
+            return self.apply_regularisation(loss)
         return loss
 
     def backward_pass_calc(self, dZ, layer):
