@@ -1,6 +1,6 @@
 import numpy as np
 import pandas as pd
-from sklearn.preprocessing import StandardScaler
+from sklearn.preprocessing import StandardScaler, LabelEncoder
 from sklearn.model_selection import train_test_split
 
 
@@ -45,4 +45,23 @@ def load_and_preprocess_data_spacial_objects():
     X_train_scaled = scaler.fit_transform(X_train)
     X_test_scaled = scaler.transform(X_test)
 
+    return X_train_scaled, y_train, X_test_scaled, y_test
+
+
+def load_and_preprocess_fish_classification_binary():
+    df = pd.read_csv(
+        "C:/Users/bruno/OneDrive/Escritorio/Desktop/Repositories/Programming_math_Ai_Assessmment_Msc_Ai/dataset/fish_classifier/fish_data.csv"
+    )
+    df.head()
+    df["species"].unique()
+
+    df["Species"] = LabelEncoder().fit_transform(df["species"])
+    X = df.drop(["species", "Species"], axis=1)
+    y = df["Species"]
+    X_train, X_test, y_train, y_test = train_test_split(
+        X, y, test_size=0.2, random_state=42
+    )
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
     return X_train_scaled, y_train, X_test_scaled, y_test

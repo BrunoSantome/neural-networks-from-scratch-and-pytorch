@@ -14,7 +14,7 @@ class NeuronalNetwork:
 
     def __init__(
         self,
-        layers_units,
+        hidden_layers_units,
         epoch=20,
         learning_rate=0.1,
         seed=42,
@@ -26,8 +26,8 @@ class NeuronalNetwork:
         batch_size=1,
         loss_function="CCE",
     ):
-        self.num_layers_units = layers_units
-        self.num_layers = len(layers_units) - 1
+        self.num_layers_units = hidden_layers_units
+        self.num_layers = len(hidden_layers_units) - 1
         self.learning_rate = learning_rate
         self.epoch = epoch
         self.seed = seed
@@ -42,6 +42,7 @@ class NeuronalNetwork:
         self.gradients = {}
         self.storage_layers = []
         self.dropout_masks = []
+        self.losses = []
         np.random.seed(self.seed)
 
         # self.init_param() only called when the data is fitted into the model (to fit dimension of first input layer)
@@ -52,6 +53,7 @@ class NeuronalNetwork:
         Returns:
             param: dictionary that contains all the weights and bias initialized randomely
         """
+        self.losses = []
         for l in range(1, len(self.num_layers_units)):
             # Dimensions of Wl: (n[l-1], n[l]) ==> it is the same for dWl (for backward pass)
             self.param[f"W{l}"] = np.random.rand(
@@ -215,3 +217,29 @@ class NeuronalNetwork:
         for i in range(1, self.num_layers + 1):
             self.param[f"W{i}"] -= self.learning_rate * self.gradients[f"dW{i}"]
             self.param[f"b{i}"] -= self.learning_rate * self.gradients[f"db{i}"]
+
+    def fit(self, X, y):
+        ...
+        # Init Data method Missing
+        # x and y should be preprocessed, y one-hot encoded.
+        X_train, y_train = X, y
+        self.num_layers_units.insert(0, X_train.shape[1])
+        self.init_param()
+        for i in range(self.epoch):
+            activation_last = self.forward_pass(X_train)
+            if self.loss_function == "BCE":
+                loss = self.loss_calc_BCE(activation_last, y_train)
+            if self.loss_function == "CCE":
+                loss = self.loss_calc_CCE()
+            self.losses.append(loss)
+            self.backward_pass(activation_last, y_train)
+            self.update_param()
+
+    def predict(self, X_test):
+        activation_last = self.forward_pass(X_test)
+        return np.argmax(activation_last, axis=1)
+
+    def eval_accuracy(self, y_test, y_pred):
+        y_test_labels = np.argmax(y_test, axis=1)
+        accuracy = np.mean(y_pred == y_test_labels)
+        return accuracy

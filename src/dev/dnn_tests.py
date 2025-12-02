@@ -14,7 +14,10 @@ from dnn_functions import (
     softmax_back_pass,
     plot_loss,
 )
-import preprocessing.preprocessing as prep
+from preprocessing.preprocessing import (
+    load_and_preprocess_data_spacial_objects,
+    load_and_preprocess_fish_classification_binary,
+)
 
 
 class dnn_tests(unittest.TestCase):
@@ -178,12 +181,10 @@ class dnn_tests(unittest.TestCase):
         plt.show()
 
     def test_dataset_space_classification(self, epoch):
-        X_train, y_train, X_test, y_test = (
-            prep.load_and_preprocess_data_spacial_objects()
-        )
-        nn_architecture1 = [X_train.shape[1], 16, 8, 3]
-        y_train_onehot = np.eye(3)[y_train.ravel()]
-        y_test_onehot = np.eye(3)[y_test.ravel()]
+        X_train, y_train, X_test, y_test = load_and_preprocess_data_spacial_objects()
+        nn_architecture1 = [X_train.shape[1], 16, 8, 8, 3]
+        y_train_onehot = np.eye(3)[y_train.to_numpy()]
+        y_test_onehot = np.eye(3)[y_test.to_numpy()]
         NNtest = NeuronalNetwork(
             nn_architecture1,
             seed=42,
@@ -191,6 +192,7 @@ class dnn_tests(unittest.TestCase):
             output_activation="softmax",
             learning_rate=0.01,
             loss_function="CCE",
+            dropout_rate=0.2,
         )
         NNtest.init_param()
         losses = []
@@ -208,7 +210,8 @@ class dnn_tests(unittest.TestCase):
         y_test_labels = np.argmax(y_test_onehot, axis=1)
         accuracy = np.mean(predictions == y_test_labels)
         print(f"Test accuracy: {accuracy}")
-        plot_loss(losses, "Loss on Stellar Object Classification Dataset")
+        # accuracy around 95% (possible overfitting)
+        plot_loss(losses, "Loss with dropout on Stellar Object Classification Dataset")
 
 
 if __name__ == "__main__":
@@ -222,4 +225,4 @@ if __name__ == "__main__":
     # Tests.test_dataset(4000, 0.4)
     # Tests.test_dataset_CCE(4000, 0.4)
     # Tests.test_dataset_BCE_Regularisation(3000)
-    Tests.test_dataset_space_classification(4000)
+    Tests.test_dataset_space_classification(2000)
