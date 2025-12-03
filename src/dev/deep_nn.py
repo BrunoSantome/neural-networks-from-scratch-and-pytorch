@@ -25,6 +25,8 @@ class NeuronalNetwork:
         lambda_l2=0.0,
         batch_size=1,
         loss_function="CCE",
+        SGD=False,
+        momentum_beta=0,
     ):
         self.num_layers_units = hidden_layers_units
         self.num_layers = len(hidden_layers_units) - 1
@@ -38,11 +40,16 @@ class NeuronalNetwork:
         self.lambda_l2 = lambda_l2
         self.batch_size = batch_size
         self.loss_function = loss_function
+        self.sgd = SGD
+        self.momentum_beta = momentum_beta
         self.param = {}
         self.gradients = {}
+        self.velocities = {}
         self.storage_layers = []
         self.dropout_masks = []
         self.losses = []
+        self.train_accuracy = []
+        self.test_accuracy = []
         np.random.seed(self.seed)
 
         # self.init_param() only called when the data is fitted into the model (to fit dimension of first input layer)
@@ -61,6 +68,11 @@ class NeuronalNetwork:
             )
             # Dimensions of bl: ( 1, n[l],) ==> it is the same for dbl (for backward pass)
             self.param[f"b{l}"] = np.zeros((1, self.num_layers_units[l]))
+
+            # momentum_beta is different than 0, it initialise the velocities used to upadte the gradients after the backward pass.
+            if self.momentum_beta:
+                self.velocities[f"dW{l}"] = np.zeros(self.param[f"W{l}"].shape)
+                self.velocities[f"db{l}"] = np.zeros(self.param[f"b{l}"].shape)
 
     def dropout(self, activation):
         mask = (np.random.rand(*activation.shape) > self.dropout_rate).astype(float) / (
@@ -215,14 +227,26 @@ class NeuronalNetwork:
         # b[l] -= learning_rate*db[l]
         # output parameters: W[l], b[l] (updated)
         for i in range(1, self.num_layers + 1):
-            self.param[f"W{i}"] -= self.learning_rate * self.gradients[f"dW{i}"]
-            self.param[f"b{i}"] -= self.learning_rate * self.gradients[f"db{i}"]
+            # If there is a momentum beta set different that 0 it updates the parameters with it.
+            if self.momentum_beta:
+                self.velocities[f"dW{i}"] = (
+                    self.momentum_beta * self.velocities[f"dW{i}"]
+                    + (1 - self.momentum_beta) * self.gradients[f"dW{i}"]
+                )
+                self.velocities[f"db{i}"] = (
+                    self.momentum_beta * self.velocities[f"db{i}"]
+                    + (1 - self.momentum_beta) * self.gradients[f"db{i}"]
+                )
 
-    def fit(self, X, y):
-        ...
+                self.param[f"W{i}"] -= self.learning_rate * self.velocities[f"dW{i}"]
+                self.param[f"b{i}"] -= self.learning_rate * self.velocities[f"db{i}"]
+            else:
+                self.param[f"W{i}"] -= self.learning_rate * self.gradients[f"dW{i}"]
+                self.param[f"b{i}"] -= self.learning_rate * self.gradients[f"db{i}"]
+
+    def fit(self, X_train, y_train, X_test, y_test):
         # Init Data method Missing
         # x and y should be preprocessed, y one-hot encoded.
-        X_train, y_train = X, y
         self.num_layers_units.insert(0, X_train.shape[1])
         self.init_param()
         for i in range(self.epoch):
@@ -234,6 +258,12 @@ class NeuronalNetwork:
             self.losses.append(loss)
             self.backward_pass(activation_last, y_train)
             self.update_param()
+            if not i % 100:
+                # checking the accuracy in the train and test set every 100 epochs.
+                train_acc = self.eval_accuracy(y_train, activation_last)
+                test_acc = self.eval_accuracy(y_test, self.forward_pass(X_test))
+                self.train_accuracy.append(train_acc)
+                self.test_accuracy.append(test_acc)
 
     def predict(self, X_test):
         activation_last = self.forward_pass(X_test)
