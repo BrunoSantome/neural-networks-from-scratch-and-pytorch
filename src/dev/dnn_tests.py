@@ -180,6 +180,33 @@ class dnn_tests(unittest.TestCase):
         plt.title("Loss without Dropout")
         plt.show()
 
+    def test_dataset_CCE_momentum(self, epoch, momentum_beta):
+        # This uses Binary cross entropy and sigmoid, It cannot use softmax.
+        X_clf, y_clf = make_moons(n_samples=300, noise=0.15, random_state=1)
+        y_clf = y_clf.reshape(-1, 1)
+        y_onehot = np.eye(2)[y_clf.ravel()]  # transform output so it accepts CCE
+        nn_architecture1 = [X_clf.shape[1], 8, 2]
+        NNTest2 = NeuronalNetwork(
+            nn_architecture1,
+            seed=42,
+            output_activation="softmax",
+            learning_rate=0.01,
+            momentum_beta=momentum_beta,
+        )
+        NNTest2.init_param()
+        losses = []
+        for i in range(epoch):
+            activation_last = NNTest2.forward_pass(X_clf)
+            loss = NNTest2.loss_calc_CCE(activation_last, y_onehot)
+            losses.append(loss)
+            NNTest2.backward_pass(activation_last, y_onehot)
+            NNTest2.update_param()
+        # Problems with softmax function. Check loss increases and becomes nan.
+        print(losses[-1])
+        plt.plot(losses)
+        plt.title("Loss Moons with Momentum of 0.2")
+        plt.show()
+
     def test_dataset_space_classification(self, epoch):
         X_train, y_train, X_test, y_test = load_and_preprocess_data_spacial_objects()
         nn_architecture1 = [X_train.shape[1], 16, 8, 3]
@@ -214,32 +241,38 @@ class dnn_tests(unittest.TestCase):
         # accuracy around 95% (possible overfitting)
         plot_loss(losses, "Loss with dropout on Stellar Object Classification Dataset")
 
-    def test_dataset_CCE_momentum(self, epoch, momentum_beta):
-        # This uses Binary cross entropy and sigmoid, It cannot use softmax.
-        X_clf, y_clf = make_moons(n_samples=300, noise=0.15, random_state=1)
-        y_clf = y_clf.reshape(-1, 1)
-        y_onehot = np.eye(2)[y_clf.ravel()]  # transform output so it accepts CCE
-        nn_architecture1 = [X_clf.shape[1], 8, 2]
-        NNTest2 = NeuronalNetwork(
+    def test_fit_method_space_classification(self, epoch):
+        X_train, y_train, X_test, y_test = load_and_preprocess_data_spacial_objects()
+        nn_architecture1 = [X_train.shape[1], 16, 8, 3]
+        y_train_onehot = np.eye(3)[y_train.to_numpy()]
+        y_test_onehot = np.eye(3)[y_test.to_numpy()]
+        NNtest = NeuronalNetwork(
             nn_architecture1,
             seed=42,
+            hidden_activation="relu",
             output_activation="softmax",
             learning_rate=0.01,
-            momentum_beta=momentum_beta,
+            loss_function="CCE",
+            dropout_rate=0.2,
+            momentum_beta=0.2,
+            epoch=epoch,
         )
-        NNTest2.init_param()
-        losses = []
-        for i in range(epoch):
-            activation_last = NNTest2.forward_pass(X_clf)
-            loss = NNTest2.loss_calc_CCE(activation_last, y_onehot)
-            losses.append(loss)
-            NNTest2.backward_pass(activation_last, y_onehot)
-            NNTest2.update_param()
-        # Problems with softmax function. Check loss increases and becomes nan.
-        print(losses[-1])
-        plt.plot(losses)
-        plt.title("Loss Moons with Momentum of 0.2")
+        NNtest.init_param()
+        NNtest.fit(X_train, y_train_onehot, X_test, y_test_onehot)
+
+        # Test accuracy
+        # activation_test = NNtest.forward_pass(X_test)
+        # predictions = np.argmax(activation_test, axis=1)
+        # y_test_labels = np.argmax(y_test_onehot, axis=1)
+        # accuracy = np.mean(predictions == y_test_labels)
+        # print(f"Test accuracy: {accuracy}")
+        # accuracy around 95% (possible overfitting)
+        plt.plot(NNtest.train_accuracy)
+        plt.title("Train accuracy Stellar object classification with momentum")
         plt.show()
+        plot_loss(
+            NNtest.losses, "Loss with dropout on Stellar Object Classification Dataset"
+        )
 
 
 if __name__ == "__main__":
@@ -253,5 +286,6 @@ if __name__ == "__main__":
     # Tests.test_dataset(4000, 0.4)
     # Tests.test_dataset_CCE(4000, 0.4)
     # Tests.test_dataset_BCE_Regularisation(3000)
-    Tests.test_dataset_space_classification(3000)
+    # Tests.test_dataset_space_classification(3000)
     # Tests.test_dataset_CCE_momentum(2000, 0.1)
+    Tests.test_fit_method_space_classification(1000)

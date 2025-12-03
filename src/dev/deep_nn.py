@@ -247,14 +247,14 @@ class NeuronalNetwork:
     def fit(self, X_train, y_train, X_test, y_test):
         # Init Data method Missing
         # x and y should be preprocessed, y one-hot encoded.
-        self.num_layers_units.insert(0, X_train.shape[1])
+        # self.num_layers_units.insert(0, X_train.shape[1])
         self.init_param()
         for i in range(self.epoch):
             activation_last = self.forward_pass(X_train)
             if self.loss_function == "BCE":
                 loss = self.loss_calc_BCE(activation_last, y_train)
             if self.loss_function == "CCE":
-                loss = self.loss_calc_CCE()
+                loss = self.loss_calc_CCE(activation_last, y_train)
             self.losses.append(loss)
             self.backward_pass(activation_last, y_train)
             self.update_param()
@@ -270,6 +270,9 @@ class NeuronalNetwork:
         return np.argmax(activation_last, axis=1)
 
     def eval_accuracy(self, y_test, y_pred):
+        # It is needed to convert the probabilities of the inputs into actual class labels
+        # T
         y_test_labels = np.argmax(y_test, axis=1)
+        y_pred = np.argmax(y_pred, axis=1)
         accuracy = np.mean(y_pred == y_test_labels)
         return accuracy
