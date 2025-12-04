@@ -254,10 +254,44 @@ class dnn_tests(unittest.TestCase):
             learning_rate=0.01,
             loss_function="CCE",
             dropout_rate=0.2,
-            momentum_beta=0.2,
+            momentum_beta=0.9,
             epoch=epoch,
         )
-        NNtest.init_param()
+        NNtest.fit(X_train, y_train_onehot, X_test, y_test_onehot)
+        print(NNtest.train_accuracy[-1])
+        print(NNtest.test_accuracy[-1])
+
+        # Test accuracy
+        # activation_test = NNtest.forward_pass(X_test)
+        # predictions = np.argmax(activation_test, axis=1)
+        # y_test_labels = np.argmax(y_test_onehot, axis=1)
+        # accuracy = np.mean(predictions == y_test_labels)
+        # print(f"Test accuracy: {accuracy}")
+        # accuracy around 95% (possible overfitting)
+        plt.plot(NNtest.train_accuracy)
+        plt.title("Train accuracy Stellar object classification with momentum")
+        plt.show()
+        plot_loss(
+            NNtest.losses, "Loss with dropout on Stellar Object Classification Dataset"
+        )
+
+    def test_fit_sgd_method_space_classification(self, epoch):
+        X_train, y_train, X_test, y_test = load_and_preprocess_data_spacial_objects()
+        nn_architecture1 = [X_train.shape[1], 16, 8, 3]
+        y_train_onehot = np.eye(3)[y_train.to_numpy()]
+        y_test_onehot = np.eye(3)[y_test.to_numpy()]
+        NNtest = NeuronalNetwork(
+            nn_architecture1,
+            seed=42,
+            hidden_activation="relu",
+            output_activation="softmax",
+            learning_rate=0.01,
+            loss_function="CCE",
+            dropout_rate=0.2,
+            momentum_beta=0,
+            epoch=epoch,
+            optimizer="sgd",
+        )
         NNtest.fit(X_train, y_train_onehot, X_test, y_test_onehot)
 
         # Test accuracy
@@ -274,6 +308,41 @@ class dnn_tests(unittest.TestCase):
             NNtest.losses, "Loss with dropout on Stellar Object Classification Dataset"
         )
 
+    def test_fit_mini_batches_method_space_classification(self, epoch):
+        # It performs so much better and so much quicker with mini batches.
+        X_train, y_train, X_test, y_test = load_and_preprocess_data_spacial_objects()
+        nn_architecture1 = [X_train.shape[1], 16, 8, 3]
+        y_train_onehot = np.eye(3)[y_train.to_numpy()]
+        y_test_onehot = np.eye(3)[y_test.to_numpy()]
+        NNtest = NeuronalNetwork(
+            nn_architecture1,
+            seed=42,
+            hidden_activation="relu",
+            output_activation="softmax",
+            learning_rate=0.01,
+            loss_function="CCE",
+            dropout_rate=0.2,
+            epoch=epoch,
+            mini_batch=False,
+        )
+        NNtest.fit(X_train, y_train_onehot, X_test, y_test_onehot)
+        print(NNtest.train_accuracy[-1])
+        print(NNtest.test_accuracy[-1])
+        print(NNtest.losses[-1])
+        # Test accuracy
+        # activation_test = NNtest.forward_pass(X_test)
+        # predictions = np.argmax(activation_test, axis=1)
+        # y_test_labels = np.argmax(y_test_onehot, axis=1)
+        # accuracy = np.mean(predictions == y_test_labels)
+        # print(f"Test accuracy: {accuracy}")
+        # accuracy around 95% (possible overfitting)
+        # plt.plot(NNtest.train_accuracy)
+        # plt.title("Train accuracy Stellar object classification with momentum")
+        # plt.show()
+        # plot_loss(
+        #     NNtest.losses, "Loss with dropout on Stellar Object Classification Dataset"
+        # )
+
 
 if __name__ == "__main__":
     Tests = dnn_tests()
@@ -288,4 +357,6 @@ if __name__ == "__main__":
     # Tests.test_dataset_BCE_Regularisation(3000)
     # Tests.test_dataset_space_classification(3000)
     # Tests.test_dataset_CCE_momentum(2000, 0.1)
-    Tests.test_fit_method_space_classification(1000)
+    # Tests.test_fit_method_space_classification(2000)
+    # Tests.test_fit_sgd_method_space_classification(100)
+    Tests.test_fit_mini_batches_method_space_classification(2000)

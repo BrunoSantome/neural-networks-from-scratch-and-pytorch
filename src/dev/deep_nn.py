@@ -25,8 +25,10 @@ class NeuronalNetwork:
         lambda_l2=0.0,
         batch_size=1,
         loss_function="CCE",
-        SGD=False,
-        momentum_beta=0,
+        optimizer1="gd",
+        beta1=0.9,
+        mini_batch=False,
+        mini_batch_size=64,
     ):
         self.num_layers_units = hidden_layers_units
         self.num_layers = len(hidden_layers_units) - 1
@@ -40,8 +42,10 @@ class NeuronalNetwork:
         self.lambda_l2 = lambda_l2
         self.batch_size = batch_size
         self.loss_function = loss_function
-        self.sgd = SGD
-        self.momentum_beta = momentum_beta
+        self.optimizer1 = optimizer1
+        self.mini_batch = mini_batch
+        self.mini_batch_size = mini_batch_size
+        self.beta1 = beta1
         self.param = {}
         self.gradients = {}
         self.velocities = {}
@@ -69,10 +73,28 @@ class NeuronalNetwork:
             # Dimensions of bl: ( 1, n[l],) ==> it is the same for dbl (for backward pass)
             self.param[f"b{l}"] = np.zeros((1, self.num_layers_units[l]))
 
-            # momentum_beta is different than 0, it initialise the velocities used to upadte the gradients after the backward pass.
-            if self.momentum_beta:
+            # beta1 is different than 0, it initialise the velocities used to upadte the gradients after the backward pass.
+            if self.optimizer1 == "momentum":
                 self.velocities[f"dW{l}"] = np.zeros(self.param[f"W{l}"].shape)
                 self.velocities[f"db{l}"] = np.zeros(self.param[f"b{l}"].shape)
+
+    def gen_random_mini_batches(self, X, y):
+        # We get the amount of examples
+        m = X.shape[0]
+        np.random.seed(self.seed + 1)
+        perm = np.random.permutation(m)
+
+        X_shuffled = X[perm]
+        y_shuffled = y[perm]
+        mini_batches = []
+        for i in range(0, m, self.mini_batch_size):
+            mini_batches.append(
+                (
+                    X_shuffled[i : i + self.mini_batch_size],
+                    y_shuffled[i : i + self.mini_batch_size],
+                )
+            )
+        return mini_batches
 
     def dropout(self, activation):
         mask = (np.random.rand(*activation.shape) > self.dropout_rate).astype(float) / (
@@ -112,6 +134,7 @@ class NeuronalNetwork:
         # output: a[l], storage: (z[l]: (W[l]*a[l-1]+b[l]), W[l], b[l], a[l-1])
         self.storage_layers = []
         self.dropout_masks = []
+        X = np.atleast_2d(X)
         activation_current = X
         # -1 because the first layer does not count.
         # Hidden layers
@@ -171,6 +194,7 @@ class NeuronalNetwork:
         return loss
 
     def backward_pass_calc(self, dZ, layer):
+        dZ = np.atleast_2d(dZ)
         storage = self.storage_layers[layer]
         _, W, _, activation_last = storage
         m = activation_last.shape[0]
@@ -221,6 +245,24 @@ class NeuronalNetwork:
                 self.gradients[f"db{i + 1}"],
             ) = self.backward_pass_hidden_single(da, i)
 
+    def update_param_with_momentum(self, i):
+        # Average of the gradients
+        self.velocities[f"dW{i}"] = (
+            self.beta1 * self.velocities[f"dW{i}"]
+            + (1 - self.beta1) * self.gradients[f"dW{i}"]
+        )
+        self.velocities[f"db{i}"] = (
+            self.beta1 * self.velocities[f"db{i}"]
+            + (1 - self.beta1) * self.gradients[f"db{i}"]
+        )
+
+        self.param[f"W{i}"] -= self.learning_rate * self.velocities[f"dW{i}"]
+        self.param[f"b{i}"] -= self.learning_rate * self.velocities[f"db{i}"]
+
+    def update_param_gd(self, i):
+        self.param[f"W{i}"] -= self.learning_rate * self.gradients[f"dW{i}"]
+        self.param[f"b{i}"] -= self.learning_rate * self.gradients[f"db{i}"]
+
     def update_param(self):
         # input: dw[l], db[l], parameters: ( W[l], b[l])
         # W[l] -= learning_rate*dW[l]
@@ -228,27 +270,57 @@ class NeuronalNetwork:
         # output parameters: W[l], b[l] (updated)
         for i in range(1, self.num_layers + 1):
             # If there is a momentum beta set different that 0 it updates the parameters with it.
-            if self.momentum_beta:
-                self.velocities[f"dW{i}"] = (
-                    self.momentum_beta * self.velocities[f"dW{i}"]
-                    + (1 - self.momentum_beta) * self.gradients[f"dW{i}"]
-                )
-                self.velocities[f"db{i}"] = (
-                    self.momentum_beta * self.velocities[f"db{i}"]
-                    + (1 - self.momentum_beta) * self.gradients[f"db{i}"]
-                )
+            if self.optimizer1 == "momentum":
+                self.update_param_with_momentum(i)
+            if self.optimizer1 == "gd":
+                self.update_param_gd(i)
 
-                self.param[f"W{i}"] -= self.learning_rate * self.velocities[f"dW{i}"]
-                self.param[f"b{i}"] -= self.learning_rate * self.velocities[f"db{i}"]
-            else:
-                self.param[f"W{i}"] -= self.learning_rate * self.gradients[f"dW{i}"]
-                self.param[f"b{i}"] -= self.learning_rate * self.gradients[f"db{i}"]
+    def fit_sgd_optimizer(self, X_train, y_train, X_test, y_test):
+        # todo: very very slow, ask teacher. Discarting this optimizer for the moment (not sure if it even works well)
+        for i in range(self.epoch):
+            total_loss = 0
+            for j in range(0, X_train.shape[0]):
+                X = X_train[j : j + 1]
+                y = y_train[j : j + 1]
+                activation_last = self.forward_pass(X)
+                if self.loss_function == "BCE":
+                    total_loss += self.loss_calc_BCE(activation_last, y)
+                if self.loss_function == "CCE":
+                    total_loss += self.loss_calc_CCE(activation_last, y)
+                self.backward_pass(activation_last, y)
+                self.update_param()
+            total_loss_avg = total_loss / X_train.shape[0]
+            self.losses.append(total_loss_avg)
+            if not i % 100:
+                # checking the accuracy in the train and test set every 100 epochs.
+                train_acc = self.eval_accuracy(y_train, self.forward_pass(X_train))
+                test_acc = self.eval_accuracy(y_test, self.forward_pass(X_test))
+                self.train_accuracy.append(train_acc)
+                self.test_accuracy.append(test_acc)
 
-    def fit(self, X_train, y_train, X_test, y_test):
-        # Init Data method Missing
-        # x and y should be preprocessed, y one-hot encoded.
-        # self.num_layers_units.insert(0, X_train.shape[1])
-        self.init_param()
+    def fit_with_mini_batch(self, X_train, y_train, X_test, y_test):
+        for i in range(self.epoch):
+            minibatches = self.gen_random_mini_batches(X_train, y_train)
+            total_loss = 0
+            for m in minibatches:
+                (X_train, y_train) = m
+                activation_last = self.forward_pass(X_train)
+                if self.loss_function == "BCE":
+                    total_loss += self.loss_calc_BCE(activation_last, y_train)
+                if self.loss_function == "CCE":
+                    total_loss += self.loss_calc_CCE(activation_last, y_train)
+                self.backward_pass(activation_last, y_train)
+                self.update_param()
+            total_loss_avg = total_loss / X_train.shape[0]
+            self.losses.append(total_loss_avg)
+            if not i % 100:
+                # checking the accuracy in the train and test set every 100 epochs.
+                train_acc = self.eval_accuracy(y_train, activation_last)
+                test_acc = self.eval_accuracy(y_test, self.forward_pass(X_test))
+                self.train_accuracy.append(train_acc)
+                self.test_accuracy.append(test_acc)
+
+    def fit_without_mini_batch(self, X_train, y_train, X_test, y_test):
         for i in range(self.epoch):
             activation_last = self.forward_pass(X_train)
             if self.loss_function == "BCE":
@@ -264,6 +336,18 @@ class NeuronalNetwork:
                 test_acc = self.eval_accuracy(y_test, self.forward_pass(X_test))
                 self.train_accuracy.append(train_acc)
                 self.test_accuracy.append(test_acc)
+
+    def fit(self, X_train, y_train, X_test, y_test):
+        # Init Data method Missing
+        # x and y should be preprocessed, y one-hot encoded.
+        # self.num_layers_units.insert(0, X_train.shape[1])
+        self.init_param()
+        # if self.optimizer == "sgd":
+        #     self.fit_sgd_optimizer(X_train, y_train, X_test, y_test)
+        if not self.mini_batch:
+            self.fit_without_mini_batch(X_train, y_train, X_test, y_test)
+        if self.mini_batch:
+            self.fit_with_mini_batch(X_train, y_train, X_test, y_test)
 
     def predict(self, X_test):
         activation_last = self.forward_pass(X_test)
