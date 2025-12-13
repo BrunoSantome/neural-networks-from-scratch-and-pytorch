@@ -27,7 +27,7 @@ class dnn_tests(unittest.TestCase):
         nn_architecture1 = [2, 4, 4, 1]
         nn_architecture2 = [8, 4, 2, 1]
         NNTest = NeuronalNetwork(nn_architecture1)
-        parameters = NNTest.init_param()
+        parameters = NNTest._init_param()
 
     def test_forward_pass(self):
         # Question what convention should we use, (n of examples, features) or (features, n of examples) for input?
@@ -37,7 +37,7 @@ class dnn_tests(unittest.TestCase):
         # print(X)
         nn_architecture1 = [2, 4, 1]
         NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
-        NNTest2.init_param()
+        NNTest2._init_param()
         print(NNTest2.forward_pass(X).shape)
 
     def test_cost_CCE(self):
@@ -47,9 +47,9 @@ class dnn_tests(unittest.TestCase):
 
         nn_architecture1 = [4, 4, 1]
         NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
-        NNTest2.init_param()
+        NNTest2._init_param()
         NNTest2.forward_pass(X)
-        NNTest2.loss_calc_CCE()
+        NNTest2._loss_calc_CCE()
 
     def tests_backward_pass_first_layer(self):
         np.random.seed(42)
@@ -59,7 +59,7 @@ class dnn_tests(unittest.TestCase):
         y = np.random.randn(1, num_values).T
         nn_architecture1 = [features, 4, 1]
         NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
-        NNTest2.init_param()
+        NNTest2._init_param()
         activation_last = NNTest2.forward_pass(X)
         NNTest2.backward_pass(activation_last, y)
 
@@ -71,7 +71,7 @@ class dnn_tests(unittest.TestCase):
         y = np.random.randn(1, num_values).T  # Still dont understand why the transpose.
         nn_architecture1 = [features, 4, 1]
         NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
-        NNTest2.init_param()
+        NNTest2._init_param()
         activation_last = NNTest2.forward_pass(X)
         NNTest2.backward_pass(activation_last, y)
         NNTest2.update_param()
@@ -84,11 +84,11 @@ class dnn_tests(unittest.TestCase):
         y = np.random.randint(0, 2, size=(num_values, 1))
         nn_architecture1 = [features, 4, 1]
         NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
-        NNTest2.init_param()
+        NNTest2._init_param()
         losses = []
         for i in range(epoch):
             activation_last = NNTest2.forward_pass(X)
-            loss = NNTest2.loss_calc_CCE(activation_last, y)
+            loss = NNTest2._loss_calc_CCE(activation_last, y)
             losses.append(loss)
             NNTest2.backward_pass(activation_last, y)
             NNTest2.update_param()
@@ -104,11 +104,11 @@ class dnn_tests(unittest.TestCase):
         print
         nn_architecture1 = [features, 4, 1]
         NNTest2 = NeuronalNetwork(nn_architecture1, seed=42, dropout_rate=dropout_rate)
-        NNTest2.init_param()
+        NNTest2._init_param()
         losses = []
         for i in range(epoch):
             activation_last = NNTest2.forward_pass(X)
-            loss = NNTest2.loss_calc_CCE(activation_last, y)
+            loss = NNTest2._loss_calc_CCE(activation_last, y)
             losses.append(loss)
             NNTest2.backward_pass(activation_last, y)
             NNTest2.update_param()
@@ -120,11 +120,11 @@ class dnn_tests(unittest.TestCase):
         y_clf = y_clf.reshape(-1, 1)
         nn_architecture1 = [X_clf.shape[1], 8, 1]
         NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
-        NNTest2.init_param()
+        NNTest2._init_param()
         losses = []
         for i in range(epoch):
             activation_last = NNTest2.forward_pass(X_clf)
-            loss = NNTest2.loss_calc_BCE(activation_last, y_clf)
+            loss = NNTest2._loss_calc_bCE(activation_last, y_clf)
             losses.append(loss)
             NNTest2.backward_pass(activation_last, y_clf)
             NNTest2.update_param()
@@ -147,11 +147,11 @@ class dnn_tests(unittest.TestCase):
             output_activation="softmax",
             learning_rate=0.01,
         )
-        NNTest2.init_param()
+        NNTest2._init_param()
         losses = []
         for i in range(epoch):
             activation_last = NNTest2.forward_pass(X_clf)
-            loss = NNTest2.loss_calc_CCE(activation_last, y_onehot)
+            loss = NNTest2._loss_calc_CCE(activation_last, y_onehot)
             losses.append(loss)
             NNTest2.backward_pass(activation_last, y_onehot)
             NNTest2.update_param()
@@ -167,11 +167,11 @@ class dnn_tests(unittest.TestCase):
         y_clf = y_clf.reshape(-1, 1)
         nn_architecture1 = [X_clf.shape[1], 8, 1]
         NNTest2 = NeuronalNetwork(nn_architecture1, lambda_l2=0.001, seed=42)
-        NNTest2.init_param()
+        NNTest2._init_param()
         losses = []
         for i in range(epoch):
             activation_last = NNTest2.forward_pass(X_clf)
-            loss = NNTest2.loss_calc_BCE(activation_last, y_clf)
+            loss = NNTest2._loss_calc_bCE(activation_last, y_clf)
             losses.append(loss)
             NNTest2.backward_pass(activation_last, y_clf)
             NNTest2.update_param()
@@ -193,11 +193,11 @@ class dnn_tests(unittest.TestCase):
             learning_rate=0.01,
             momentum_beta=momentum_beta,
         )
-        NNTest2.init_param()
+        NNTest2._init_param()
         losses = []
         for i in range(epoch):
             activation_last = NNTest2.forward_pass(X_clf)
-            loss = NNTest2.loss_calc_CCE(activation_last, y_onehot)
+            loss = NNTest2._loss_calc_CCE(activation_last, y_onehot)
             losses.append(loss)
             NNTest2.backward_pass(activation_last, y_onehot)
             NNTest2.update_param()
@@ -222,11 +222,11 @@ class dnn_tests(unittest.TestCase):
             dropout_rate=0.2,
             momentum_beta=0.2,
         )
-        NNtest.init_param()
+        NNtest._init_param()
         losses = []
         for i in range(epoch + 1):
             activation_last = NNtest.forward_pass(X_train)
-            loss = NNtest.loss_calc_CCE(activation_last, y_train_onehot)
+            loss = NNtest._loss_calc_CCE(activation_last, y_train_onehot)
             losses.append(loss)
             if i % 100 == 0:
                 print(f"Epoch {i}, loss: {loss}")
@@ -311,24 +311,28 @@ class dnn_tests(unittest.TestCase):
     def test_fit_mini_batches_method_space_classification(self, epoch):
         # It performs so much better and so much quicker with mini batches.
         X_train, y_train, X_test, y_test = load_and_preprocess_data_spacial_objects()
-        nn_architecture1 = [X_train.shape[1], 16, 8, 3]
-        y_train_onehot = np.eye(3)[y_train.to_numpy()]
-        y_test_onehot = np.eye(3)[y_test.to_numpy()]
+        nn_architecture1 = [X_train.shape[1], 4, 3]
         NNtest = NeuronalNetwork(
             nn_architecture1,
             seed=42,
             hidden_activation="relu",
             output_activation="softmax",
+            optimizer1="gd",
             learning_rate=0.01,
             loss_function="CCE",
-            dropout_rate=0.2,
             epoch=epoch,
-            mini_batch=False,
+            mini_batch=True,
+            dropout_rate=0.2,
         )
+        y_train_onehot = np.eye(3)[y_train.to_numpy()]
+        y_test_onehot = np.eye(3)[y_test.to_numpy()]
         NNtest.fit(X_train, y_train_onehot, X_test, y_test_onehot)
         print(NNtest.train_accuracy[-1])
         print(NNtest.test_accuracy[-1])
         print(NNtest.losses[-1])
+        # Insane improvement with mini batches on train and test set !
+        # Without Mini batches: 0.7751625 / 0.76915 / 0.639258578845312
+        # With mini batches: 0.90625 / 0.85285 / 0.004088191320124638
         # Test accuracy
         # activation_test = NNtest.forward_pass(X_test)
         # predictions = np.argmax(activation_test, axis=1)
@@ -359,4 +363,4 @@ if __name__ == "__main__":
     # Tests.test_dataset_CCE_momentum(2000, 0.1)
     # Tests.test_fit_method_space_classification(2000)
     # Tests.test_fit_sgd_method_space_classification(100)
-    Tests.test_fit_mini_batches_method_space_classification(2000)
+    Tests.test_fit_mini_batches_method_space_classification(4000)
