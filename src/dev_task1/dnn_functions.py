@@ -15,7 +15,7 @@ def sigmoid(Z):
     Z (np.ndarray):
        the input ndarray Z, usefull for backward prop
     """
-
+    # carefull with overflow here might need to
     A = 1 / (1 + np.exp(-Z))
     return A, Z
 

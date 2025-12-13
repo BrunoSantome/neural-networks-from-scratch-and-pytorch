@@ -112,13 +112,15 @@ class NeuronalNetwork:
         perm = np.random.permutation(m)
         # Array of mini_batches for each epoch
         mini_batches = []
+        X_shuffled = X[perm]
+        y_shuffled = y[perm]
         # The step in the loop is customizable with the mini_batch_size variable
         for i in range(0, m, self.mini_batch_size):
             # we basically just take the batches from the whole X train data applying a random permutation
             mini_batches.append(
                 (
-                    X[perm][i : i + self.mini_batch_size],
-                    y[perm][i : i + self.mini_batch_size],
+                    X_shuffled[i : i + self.mini_batch_size],
+                    y_shuffled[i : i + self.mini_batch_size],
                 )
             )
         return mini_batches

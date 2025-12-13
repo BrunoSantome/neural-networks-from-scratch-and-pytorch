@@ -5,6 +5,8 @@ from deep_nn import NeuronalNetwork
 from sklearn.datasets import make_moons
 import numpy as np
 import pandas as pd
+import os
+import time
 from dnn_functions import (
     sigmoid,
     relu,
@@ -311,7 +313,7 @@ class dnn_tests(unittest.TestCase):
     def test_fit_mini_batches_method_space_classification(self, epoch):
         # It performs so much better and so much quicker with mini batches.
         X_train, y_train, X_test, y_test = load_and_preprocess_data_spacial_objects()
-        nn_architecture1 = [X_train.shape[1], 4, 3]
+        nn_architecture1 = [X_train.shape[1], 16, 4, 3]
         NNtest = NeuronalNetwork(
             nn_architecture1,
             seed=42,
@@ -321,9 +323,13 @@ class dnn_tests(unittest.TestCase):
             learning_rate=0.01,
             loss_function="CCE",
             epoch=epoch,
-            mini_batch=True,
-            dropout_rate=0.2,
+            mini_batch=False,
+            mini_batch_size=64,
         )
+
+        # 0.74655
+        # 0.74175
+        # 0.7910804731334554
         y_train_onehot = np.eye(3)[y_train.to_numpy()]
         y_test_onehot = np.eye(3)[y_test.to_numpy()]
         NNtest.fit(X_train, y_train_onehot, X_test, y_test_onehot)
@@ -334,10 +340,6 @@ class dnn_tests(unittest.TestCase):
         # Without Mini batches: 0.7751625 / 0.76915 / 0.639258578845312
         # With mini batches: 0.90625 / 0.85285 / 0.004088191320124638
         # Test accuracy
-        # activation_test = NNtest.forward_pass(X_test)
-        # predictions = np.argmax(activation_test, axis=1)
-        # y_test_labels = np.argmax(y_test_onehot, axis=1)
-        # accuracy = np.mean(predictions == y_test_labels)
         # print(f"Test accuracy: {accuracy}")
         # accuracy around 95% (possible overfitting)
         # plt.plot(NNtest.train_accuracy)
@@ -347,8 +349,90 @@ class dnn_tests(unittest.TestCase):
         #     NNtest.losses, "Loss with dropout on Stellar Object Classification Dataset"
         # )
 
+    def tuning_hyperparameters(
+        self,
+        description,
+        architecture,
+        epoch=100,
+        learning_rate=0.01,
+        seed=42,
+        hidden_activation="relu",
+        output_activation="sigmoid",
+        dropout_rate=0,
+        lambda_l1=0.0,
+        lambda_l2=0.0,
+        loss_function="CCE",
+        optimizer1="gd",
+        beta1=0.9,
+        mini_batch=False,
+        mini_batch_size=64,
+    ):
+        X_train, y_train, X_test, y_test = load_and_preprocess_data_spacial_objects()
+        hidden_layers_units = []
+        architecture = [16, 8]  # Example architecture
+        hidden_layers_units.append(X_train.shape[1])
+        hidden_layers_units.extend(architecture)
+        hidden_layers_units.append(y_test.unique().shape[0])
+        # hidden_layers_units = [X_train.shape[1], 8, 3]
+
+        NNtest = NeuronalNetwork(
+            hidden_layers_units,
+            seed=seed,
+            hidden_activation=hidden_activation,
+            output_activation=output_activation,
+            optimizer1=optimizer1,
+            learning_rate=learning_rate,
+            loss_function=loss_function,
+            dropout_rate=dropout_rate,
+            lambda_l1=lambda_l1,
+            lambda_l2=lambda_l2,
+            epoch=epoch,
+            mini_batch=mini_batch,
+            mini_batch_size=mini_batch_size,
+        )
+
+        y_train_onehot = np.eye(3)[y_train.to_numpy()]
+        y_test_onehot = np.eye(3)[y_test.to_numpy()]
+        time_start = time.time()
+        NNtest.fit(X_train, y_train_onehot, X_test, y_test_onehot)
+        time_end = time.time()
+        elapsed_time = time_end - time_start
+        print(NNtest.train_accuracy[-1])
+        print(NNtest.test_accuracy[-1])
+        print(NNtest.losses[-1])
+
+        data = {
+            "Description": [description],
+            "Architecture": [str(hidden_layers_units)],
+            "Epoch": [epoch],
+            "Learning Rate": [learning_rate],
+            "seed": [seed],
+            "hidden a": [hidden_activation],
+            "Output a": [output_activation],
+            "Dropout rate": [dropout_rate],
+            "Lambda L1": [lambda_l1],
+            "Lambda L2": [lambda_l2],
+            "Loss function": [loss_function],
+            "Optimizer": [optimizer1],
+            "beta1": [beta1],
+            "mini_batch": [1 if mini_batch else 0],
+            "mini batch size": [mini_batch_size],
+            "Train accuracy": [NNtest.train_accuracy[-1]],
+            "Test_accuracy": [NNtest.test_accuracy[-1]],
+            "Final Loss": [NNtest.losses[-1]],
+            "Processing Time (s)": [elapsed_time],
+        }
+        df_new = pd.DataFrame(data)
+        if os.path.exists(EXCEL_FILE):
+            df_existing = pd.read_excel(EXCEL_FILE)
+            df_combined = pd.concat([df_existing, df_new], ignore_index=True)
+            df_combined.to_excel(EXCEL_FILE, index=False)
+        else:
+            df_new.to_excel(EXCEL_FILE, index=False)
+
 
 if __name__ == "__main__":
+    EXCEL_FILE = "hyperparameter_tuning_results.xlsx"
     Tests = dnn_tests()
     # Tests.test_init_param()
     # Tests.test_forward_pass()z
@@ -363,4 +447,22 @@ if __name__ == "__main__":
     # Tests.test_dataset_CCE_momentum(2000, 0.1)
     # Tests.test_fit_method_space_classification(2000)
     # Tests.test_fit_sgd_method_space_classification(100)
-    Tests.test_fit_mini_batches_method_space_classification(4000)
+    # Tests.test_fit_mini_batches_method_space_classification(2000)
+    NN_hidden_architecture = [16, 8]
+    Tests.tuning_hyperparameters(
+        description="Test2 mini-batch",
+        architecture=NN_hidden_architecture,
+        epoch=3000,
+        learning_rate=0.01,
+        seed=42,
+        hidden_activation="relu",
+        output_activation="softmax",
+        dropout_rate=0.0,
+        lambda_l1=0.0,
+        lambda_l2=0.0,
+        loss_function="CCE",
+        optimizer1="gd",
+        beta1=0.9,
+        mini_batch=True,
+        mini_batch_size=64,
+    )
