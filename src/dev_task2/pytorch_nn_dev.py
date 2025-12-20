@@ -22,7 +22,7 @@ def swtich_to_cuda():
     print("CUDA version:", torch.version.cuda)
 
 
-PATH = "C:/Users/bruno/OneDrive/Escritorio/Desktop/Repositories/Programming_math_Ai_Assessmment_Msc_Ai/dataset/Aerial_Landscapes/"
+PATH = "../../dataset/Aerial_Landscapes/"
 
 
 # class NeuronalNetwork(nn.Module):

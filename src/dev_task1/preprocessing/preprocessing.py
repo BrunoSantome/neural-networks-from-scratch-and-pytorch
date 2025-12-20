@@ -12,9 +12,7 @@ def load_and_preprocess_data_spacial_objects():
         y_train (pd.Series): Training labels.
         y_test (pd.Series): Testing labels.
     """
-    df = pd.read_csv(
-        "C:/Users/bruno/OneDrive/Escritorio/Desktop/Repositories/Programming_math_Ai_Assessmment_Msc_Ai/dataset/Stellar_object_classification/SDSS_DR18.csv"
-    )
+    df = pd.read_csv("../../../dataset/Stellar_object_classification/SDSS_DR18.csv")
     # They do not provide any useful information for the classification task
     df = df.drop(
         [
