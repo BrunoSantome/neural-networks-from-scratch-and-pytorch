@@ -39,8 +39,45 @@ class NeuralNetwork(nn.Module):
 
     def forward(self, x):
         x = self.flatten(x)
-        logits = self.linear_relu_stack(x)
-        return logits
+        x = self.linear_relu_stack(x)
+        return x
+
+
+class CNN(nn.Module):
+    # Large images + MLP → too many parameters, slow learning.
+    def __init__(self, in_channels, num_classes):
+        super(CNN, self).__init__()
+        self.linear_cnn_model = nn.Sequential(  # The more out channels the more compute with bigger in channels
+            nn.Conv2d(
+                in_channels=in_channels, out_channels=32, kernel_size=3, padding=1
+            ),  # Padding so input and output have same dimensions
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(
+                in_channels=32, out_channels=64, kernel_size=3, padding=1
+            ),  # We had to add another layer. otherwise too many parameters.
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+            nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1),
+            nn.ReLU(),
+            nn.MaxPool2d(2),
+        )
+
+        self.classifierNN = nn.Sequential(
+            nn.Flatten(),
+            # nn.Linear(64 * 64 * 64, 512),
+            nn.Linear(256 * 16 * 16, 512),
+            nn.ReLU(),
+            nn.Linear(512, num_classes),
+        )
+
+    def forward(self, x):
+        x = self.linear_cnn_model(x)
+        x = self.classifierNN(x)
+        return x
 
 
 def train_network(model, optimizer, loss_function, num_epochs, X_train, device):
@@ -111,48 +148,55 @@ def plot_losses(losses):
 if __name__ == "__main__":
     X_train, y_test = pre_processing_dataset(path=PATH)
     device = swtich_to_cuda()
-    model_NN = NeuralNetwork().to(device)
-    adam_optimizer = torch.optim.Adam(
-        model_NN.parameters(), betas=(0.9, 0.999), lr=0.001, eps=1e-8, weight_decay=0.0
-    )
-    # adamW_optimizer = torch.optim.AdamW(
-    #     model_NN.parameters(), lr=3e-4, weight_decay=1e-4
+
+    ##############Neuronal network model###########33333
+    # model_NN = NeuralNetwork().to(device)
+
+    # adam_optimizer = torch.optim.Adam(
+    #     model_NN.parameters(), betas=(0.9, 0.999), lr=0.001, eps=1e-8, weight_decay=0.0
     # )
-    # Train model
-    lossNN = train_network(
-        model_NN, adam_optimizer, nn.CrossEntropyLoss(), 50, X_train, device
+    # # adamW_optimizer = torch.optim.AdamW(
+    # #     model_NN.parameters(), lr=3e-4, weight_decay=1e-4
+    # # )
+    # # Train model
+    # lossNN = train_network(
+    #     model_NN, adam_optimizer, nn.CrossEntropyLoss(), 50, X_train, device
+    # )
+    # evaluate_model(model_NN, y_test, lossNN, device)
+    # plot_losses(lossNN)
+
+    ##############Convolutional Neuronal network model###############
+    model_CNN = CNN(3, 15).to(device)
+    optimizer_CNN = torch.optim.Adam(model_CNN.parameters(), lr=0.001)
+    loss_fn = nn.CrossEntropyLoss()
+    lossCNN = train_network(
+        model_CNN, optimizer_CNN, loss_fn, num_epochs=20, X_train=X_train, device=device
     )
-    evaluate_model(model_NN, y_test, lossNN, device)
-    plot_losses(lossNN)
+    evaluate_model(model_CNN, y_test, lossCNN, device)
+    plot_losses(lossCNN)
 
-    ###########
-    # epoch 10. lr 0.001.
-    # Epoch: 0 - Loss: 4.4644
-    # Epoch: 1 - Loss: 2.1895
-    # Epoch: 2 - Loss: 2.0818
-    # Epoch: 3 - Loss: 2.0591
-    # Epoch: 4 - Loss: 2.0141
-    # Epoch: 5 - Loss: 1.9654
-    # Epoch: 6 - Loss: 1.9349
-    # Epoch: 7 - Loss: 1.9370
-    # Epoch: 8 - Loss: 1.9365
-    # Epoch: 9 - Loss: 1.9005
-    # --- 609.2014908790588 seconds ---
+##################### NN TESTS #############3
+###########
+# epoch 10. lr 0.001.
+# Epoch: 0 - Loss: 4.4644
+# Epoch: 1 - Loss: 2.1895
+# Epoch: 2 - Loss: 2.0818
+# Epoch: 3 - Loss: 2.0591
+# Epoch: 4 - Loss: 2.0141
+# Epoch: 5 - Loss: 1.9654
+# Epoch: 6 - Loss: 1.9349
+# Epoch: 7 - Loss: 1.9370
+# Epoch: 8 - Loss: 1.9365
+# Epoch: 9 - Loss: 1.9005
+# --- 609.2014908790588 seconds ---
 
-    # lr=0.01
-    #     Epoch: 0 - Loss: 24.0916
-    # Epoch: 1 - Loss: 2.7370
-    # Epoch: 2 - Loss: 2.7099
-    # Epoch: 3 - Loss: 2.7102
-    # Epoch: 4 - Loss: 2.7101
-    # Epoch: 5 - Loss: 2.7100
-    # for X, y in X_train:
-    #     print(y.min(), y.max())
-    #     print(y.dtype)
-    #     # print(output_data.shape)
-    #     print(f"Shape of X : {X.shape}")
-    #     print(f"Shape of y: {y.shape} {y.dtype}")
-    #     break
+# lr=0.01
+#     Epoch: 0 - Loss: 24.0916
+# Epoch: 1 - Loss: 2.7370
+# Epoch: 2 - Loss: 2.7099
+# Epoch: 3 - Loss: 2.7102
+# Epoch: 4 - Loss: 2.7101
+# Epoch: 5 - Loss: 2.7100
 
 
 # --- 846.3008494377136 seconds --- without betas and eps
@@ -167,3 +211,70 @@ if __name__ == "__main__":
 ####--- 1481.3784992694855 seconds --- 50 epoch. # A lot of images and large and regular neuronal network → too many parameters, slow learning.
 
 # Test accuracy: 0.3442 #Accuracy has not improved
+
+
+############## CNN TESTS##############
+
+# With only 1 epoch the loss is already lower compared to NN and accuracy increased drastically !
+# Epoch: 0 - Loss: 1.7144
+# --- 40.928863525390625 seconds ---
+# Test accuracy: 0.5496
+
+### 10 epochs 2 Conv layers
+# Epoch: 2 - Loss: 0.8572
+# Epoch: 3 - Loss: 0.4840
+# Epoch: 4 - Loss: 0.2063
+# Epoch: 5 - Loss: 0.0996
+# Epoch: 6 - Loss: 0.0480
+# Epoch: 7 - Loss: 0.0269
+# Epoch: 8 - Loss: 0.0585
+# Epoch: 9 - Loss: 0.0482
+# --- 467.5640649795532 seconds ---
+# Test accuracy: 0.6012
+
+### 10 epochs 3 Conv layers
+# Epoch: 5 - Loss: 0.2072
+# Epoch: 6 - Loss: 0.1184
+# Epoch: 7 - Loss: 0.0696
+# Epoch: 8 - Loss: 0.0756
+# Epoch: 9 - Loss: 0.0697
+# --- 419.09427309036255 seconds ---
+# Test accuracy: 0.6704
+
+# Almost same time, but higher accuracy
+
+# Epoch: 0 - Loss: 1.8732
+# Epoch: 1 - Loss: 1.2456
+# Epoch: 2 - Loss: 0.9269
+# Epoch: 3 - Loss: 0.7283
+# Epoch: 4 - Loss: 0.5444
+# Epoch: 5 - Loss: 0.3610
+# Epoch: 6 - Loss: 0.2367
+# Epoch: 7 - Loss: 0.1363
+# Epoch: 8 - Loss: 0.1407
+# Epoch: 9 - Loss: 0.0846
+# --- 452.347186088562 seconds ---
+# Test accuracy: 0.7125
+
+# Epoch: 0 - Loss: 1.7709
+# Epoch: 1 - Loss: 1.1802
+# Epoch: 2 - Loss: 0.9443
+# Epoch: 3 - Loss: 0.7702
+# Epoch: 4 - Loss: 0.6457
+# Epoch: 5 - Loss: 0.4734
+# Epoch: 6 - Loss: 0.3574
+# Epoch: 7 - Loss: 0.2489
+# Epoch: 8 - Loss: 0.1515
+# Epoch: 9 - Loss: 0.1465
+# Epoch: 10 - Loss: 0.0975
+# Epoch: 11 - Loss: 0.0812
+# Epoch: 12 - Loss: 0.0801
+# Epoch: 13 - Loss: 0.0974
+# Epoch: 14 - Loss: 0.0574
+# Epoch: 15 - Loss: 0.0719
+# Epoch: 16 - Loss: 0.0457
+# Epoch: 17 - Loss: 0.0200
+# Epoch: 18 - Loss: 0.0882
+# Epoch: 19 - Loss: 0.0445
+# --- 775.4758677482605 seconds ---
+# Test accuracy: 0.7175
