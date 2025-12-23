@@ -9,7 +9,7 @@ Details
 
 Aerial Landscape Images 
 
-(161.48 MB)
+(161.48 MB) upload to git. 
 
 Image Resolution: 256x256 pixels
 Number of categories: 15
@@ -32,17 +32,23 @@ NWPU-Resisc45 Dataset: https://paperswithcode.com/dataset/resisc45
 PATH = "../../dataset/Aerial_Landscapes/"
 
 
-def pre_processing_dataset(batch_size=32, train_test_split_n=0.2, seed=42):
+def pre_processing_dataset(batch_size=32, train_test_split_n=0.2, seed=42, path=PATH):
     # Careful if adding augmentation or transformations to the data better to do for training,
     # so apply after the split not before.
-    transform = transforms.Compose(
+    transform_train = transforms.Compose(
         [
             # transforms.Resize((256, 256)), ## check if reducing the size is worth it.
             # transforms.RandomHorizontalFlip(),
             transforms.ToTensor(),
         ]
     )
-    landscapes = datasets.ImageFolder(root=PATH)
+    transform_test = transforms.Compose(
+        [
+            # transforms.Resize((256, 256)), ## check if reducing the size is worth it.
+            transforms.ToTensor(),
+        ]
+    )
+    landscapes = datasets.ImageFolder(root=path)
     training_split_n = 1 - train_test_split_n
     gen = torch.Generator().manual_seed(
         seed
@@ -51,8 +57,8 @@ def pre_processing_dataset(batch_size=32, train_test_split_n=0.2, seed=42):
     train_set, test_set = random_split(
         landscapes, [train_size, len(landscapes) - train_size], generator=gen
     )
-    train_set.dataset.transform = transform
-    test_set.dataset.transform = transform
+    train_set.dataset.transform = transform_train
+    test_set.dataset.transform = transform_test
     # DataLoader: Groups samples into batches,
     # Shuffles data, loads data in parallel,
     # Feeds data efficiently to the GPU
