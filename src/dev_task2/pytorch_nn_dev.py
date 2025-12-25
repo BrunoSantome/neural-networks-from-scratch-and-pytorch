@@ -80,14 +80,14 @@ class CNN(nn.Module):
             nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2),
-            # nn.AdaptiveAvgPool2d((1,1))
+            nn.AdaptiveAvgPool2d((1, 1)),
         )
 
         self.classifierNN = nn.Sequential(
             nn.Flatten(),
             # nn.Linear(64 * 64 * 64, 512),
             # nn.Linear(256 * 16 * 16, 512),
-            nn.Linear(512 * 8 * 8, 512),
+            nn.Linear(512 * 1 * 1, 512),
             nn.ReLU(),
             nn.Dropout(0.5),  # Adding dropout
             nn.Linear(512, num_classes),
@@ -211,7 +211,7 @@ if __name__ == "__main__":
         model_CNN,
         optimizer_CNN,
         loss_fn,
-        num_epochs=10,
+        num_epochs=50,
         X_train=X_train,
         device=device,
     )
@@ -459,3 +459,12 @@ if __name__ == "__main__":
 # Epoch: 29 - Loss: 0.1031
 # --- 1224.7226314544678 seconds ---
 # Test accuracy: 0.7821
+
+
+# Final model, could be improved but it is enough maybe try with further epochs.
+# Adaptativepooling as last layer of CNN,
+# Epoch: 47 - Loss: 0.1203
+# Epoch: 48 - Loss: 0.0810
+# Epoch: 49 - Loss: 0.0845
+# --- 1883.2752048969269 seconds ---
+# Test accuracy: 0.8929
