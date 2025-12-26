@@ -48,6 +48,7 @@ class NeuronalNetwork:
         beta1=0.9,
         mini_batch=False,
         mini_batch_size=64,
+        verbose=0,
     ):
         self.num_layers_units = hidden_layers_units
         self.num_layers = len(hidden_layers_units) - 1
@@ -64,6 +65,7 @@ class NeuronalNetwork:
         self.mini_batch = mini_batch
         self.mini_batch_size = mini_batch_size
         self.beta1 = beta1
+        self.verbose = verbose
 
         self.param = {}  # dictionary to store weights and bias of each layer
         self.gradients = {}  # dictionary to store gradients of weights and bias of each layer
@@ -73,6 +75,7 @@ class NeuronalNetwork:
         self.losses = []  # list to store loss values during training
         self.train_accuracy = []  # list to store training accuracy during training
         self.test_accuracy = []  # list to store testing accuracy during training
+
         np.random.seed(self.seed)
 
         # self._init_param() only called when the data is fitted into the model (to fit dimension of first input layer)
@@ -466,6 +469,8 @@ class NeuronalNetwork:
     def _fit_with_mini_batch(self, X_train, y_train, X_test, y_test):
         """Full neuronal network iteration using mini batch gradient descent"""
         # iterates through the given epochs
+        X_train_full = X_train
+        y_train_full = y_train
         for i in range(self.epoch):
             # generates the random mini batches
             minibatches = self._gen_random_mini_batches(X_train, y_train)
@@ -487,17 +492,23 @@ class NeuronalNetwork:
                 self._update_param()  # update the parameters
 
             # since using mini batches, we calculate the average of every mini batch loss value
-            total_loss_avg = total_loss / X_train.shape[0]
+            total_loss_avg = total_loss / len(minibatches)
             self.losses.append(total_loss_avg)
 
             # In every 100 epoch it adds the training accuracy and the test accuracy
             # todo: what if there is less than 100 epoch given?
-            if not i % 100:
+            if not i % 1:
                 # checking the accuracy in the train and test set every 100 epochs.
-                train_acc = self.eval_accuracy(y_train, activation_last)
+                train_acc = self.eval_accuracy(
+                    y_train_full, self.forward_pass(X_train_full)
+                )
                 test_acc = self.eval_accuracy(y_test, self.forward_pass(X_test))
                 self.train_accuracy.append(train_acc)
                 self.test_accuracy.append(test_acc)
+                if self.verbose:
+                    print(f"Epoch {i}, loss: {total_loss_avg}")
+                    print(f"Epoch {i}, Train accuracy: {train_acc}")
+                    print(f"Epoch{i}, Test accuracy : {train_acc}")
 
     def _fit_without_mini_batch(self, X_train, y_train, X_test, y_test):
         """Full neuronal network iteration using regular gradient descent"""
@@ -523,6 +534,10 @@ class NeuronalNetwork:
                 test_acc = self.eval_accuracy(y_test, self.forward_pass(X_test))
                 self.train_accuracy.append(train_acc)
                 self.test_accuracy.append(test_acc)
+                if self.verbose:
+                    print(f"Epoch {i}, loss: {loss}")
+                    print(f"Epoch {i}, Train accuracy: {train_acc}")
+                    print(f"Epoch{i}, Test accuracy : {train_acc}")
 
     def fit(self, X_train, y_train, X_test, y_test):
         """Fit training data in the model and train it with the hyperparameters selected"""
@@ -558,3 +573,10 @@ class NeuronalNetwork:
             y_pred == y_test_labels
         )  # whether the prediction value and the actual value is the same or not.
         return accuracy
+
+    def create_confusion_matrixes(self, X_train, X_test, y_train, y_test):
+        y_train_pred = np.argmax(self.forward_pass(X_train), axis=1)
+        y_test_pred = np.argmax(self.forward_pass(X_test), axis=1)
+        y_train_true = np.argmax(y_train, axis=1)
+        y_test_true = np.argmax(y_test, axis=1)
+        return y_train_pred, y_test_pred, y_train_true, y_test_true

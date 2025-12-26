@@ -7,6 +7,7 @@ import numpy as np
 import pandas as pd
 import os
 import time
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
 from dnn_functions import (
     sigmoid,
     relu,
@@ -15,10 +16,11 @@ from dnn_functions import (
     relu_back_pass,
     softmax_back_pass,
     plot_loss,
+    plot_accuracy,
 )
-from preprocessing.preprocessing import (
+from preprocessing import (
     load_and_preprocess_data_spacial_objects,
-    load_and_preprocess_fish_classification_binary,
+    # load_and_preprocess_fish_classification_binary,
 )
 
 
@@ -397,6 +399,33 @@ class dnn_tests(unittest.TestCase):
         NNtest.fit(X_train, y_train_onehot, X_test, y_test_onehot)
         time_end = time.time()
         elapsed_time = time_end - time_start
+        y_train_pred, y_test_pred, y_train_true, y_test_true = (
+            NNtest.create_confusion_matrixes(
+                X_train, X_test, y_train_onehot, y_test_onehot
+            )
+        )
+
+        # cm_train = confusion_matrix(y_train_true, y_train_pred)
+        # cm_test = confusion_matrix(y_test_true, y_test_pred)
+        # print(cm_train)
+        # disp_train = ConfusionMatrixDisplay(
+        #     confusion_matrix=cm_train, display_labels=[0, 1, 2]
+        # )
+        # disp_train.plot(cmap="Blues")
+        # plt.title("Train Confusion Matrix")
+        # plt.show()
+
+        # print(cm_test)
+        # disp_test = ConfusionMatrixDisplay(
+        #     confusion_matrix=cm_test, display_labels=[0, 1, 2]
+        # )
+        # disp_test.plot(cmap="Blues")
+        # plt.title("Test Confusion Matrix")
+        # plt.show()
+
+        # plot_loss(NNtest.losses, "Losses over epochs")
+        # plot_accuracy(NNtest.train_accuracy, "Training accuracy over epochs")
+        # plot_accuracy(NNtest.test_accuracy, "Testing accuracy over epochs")
         print(NNtest.train_accuracy[-1])
         print(NNtest.test_accuracy[-1])
         print(NNtest.losses[-1])
@@ -415,10 +444,10 @@ class dnn_tests(unittest.TestCase):
             "Loss function": [loss_function],
             "Optimizer": [optimizer1],
             "beta1": [beta1],
-            "mini_batch": [1 if mini_batch else 0],
+            "mini batch": [1 if mini_batch else 0],
             "mini batch size": [mini_batch_size],
             "Train accuracy": [NNtest.train_accuracy[-1]],
-            "Test_accuracy": [NNtest.test_accuracy[-1]],
+            "Test accuracy": [NNtest.test_accuracy[-1]],
             "Final Loss": [NNtest.losses[-1]],
             "Processing Time (s)": [elapsed_time],
         }
@@ -448,20 +477,20 @@ if __name__ == "__main__":
     # Tests.test_fit_method_space_classification(2000)
     # Tests.test_fit_sgd_method_space_classification(100)
     # Tests.test_fit_mini_batches_method_space_classification(2000)
-    NN_hidden_architecture = [16, 8]
+    NN_hidden_architecture = [64, 128, 64, 32]
     Tests.tuning_hyperparameters(
-        description="Test2 mini-batch",
+        description="Test4 architecture 1 layers, lr=0.01, mini-batch, relu hidden, gradient-descent without mini batch",
         architecture=NN_hidden_architecture,
-        epoch=3000,
-        learning_rate=0.01,
+        epoch=100,
+        learning_rate=0.001,
         seed=42,
         hidden_activation="relu",
         output_activation="softmax",
-        dropout_rate=0.0,
+        dropout_rate=0.2,
         lambda_l1=0.0,
         lambda_l2=0.0,
         loss_function="CCE",
-        optimizer1="gd",
+        optimizer1="momentum",
         beta1=0.9,
         mini_batch=True,
         mini_batch_size=64,

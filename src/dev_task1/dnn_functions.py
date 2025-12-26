@@ -109,7 +109,18 @@ def softmax_back_pass(da, Z):
     return dZ
 
 
+def plot_accuracy(accuracies, title):
+    print(accuracies)
+    plt.plot(accuracies)
+    plt.title(title)
+    plt.show()
+
+
 def plot_loss(losses, title):
+    print(losses)
     plt.plot(losses)
     plt.title(title)
     plt.show()
+
+
+# def plot_confusion_matrix(cm):
