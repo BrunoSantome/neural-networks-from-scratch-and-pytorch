@@ -77,9 +77,9 @@ class CNN(nn.Module):
             nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, padding=1),
             nn.ReLU(),
             nn.MaxPool2d(2),
-            nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, padding=1),
-            nn.ReLU(),
-            nn.MaxPool2d(2),
+            # nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, padding=1),
+            # nn.ReLU(),
+            # nn.MaxPool2d(2),
             nn.AdaptiveAvgPool2d((1, 1)),
         )
 
@@ -87,7 +87,7 @@ class CNN(nn.Module):
             nn.Flatten(),
             # nn.Linear(64 * 64 * 64, 512),
             # nn.Linear(256 * 16 * 16, 512),
-            nn.Linear(512 * 1 * 1, 512),
+            nn.Linear(256 * 1 * 1, 512),
             nn.ReLU(),
             nn.Dropout(0.5),  # Adding dropout
             nn.Linear(512, num_classes),
@@ -129,6 +129,7 @@ def evaluate_model(model, test_set, losses, device):
     acc = Accuracy(task="multiclass", num_classes=15).to(device)
 
     model.eval()
+    batch_accuracies = []
     with torch.no_grad():
         for inputs, labels in test_set:
             inputs = inputs.to(device)
@@ -137,8 +138,19 @@ def evaluate_model(model, test_set, losses, device):
             preds = outputs.argmax(dim=1)
             acc(preds, labels)
 
+            batch_acc = (preds == labels).float().mean().item()
+            batch_accuracies.append(batch_acc)
+
     test_accuracy = acc.compute().item()
     print(f"Test accuracy: {test_accuracy:.4f}")
+
+    plt.figure(figsize=(8, 4))
+    plt.plot(batch_accuracies, marker="o")
+    plt.xlabel("Batch")
+    plt.ylabel("Accuracy")
+    plt.title("Batch-wise Accuracy")
+    plt.grid(True)
+    plt.show()
     return test_accuracy
 
     # Compute total test accuracy
@@ -300,6 +312,40 @@ if __name__ == "__main__":
 # --- 452.347186088562 seconds ---
 # Test accuracy: 0.7125
 
+# learning rate 0.002 and 30 epoch nope.
+# Epoch: 0 - Loss: 2.0310
+# Epoch: 1 - Loss: 1.2746
+# Epoch: 2 - Loss: 0.9880
+# Epoch: 3 - Loss: 0.7867
+# Epoch: 4 - Loss: 0.6283
+# Epoch: 5 - Loss: 0.4735
+# Epoch: 6 - Loss: 0.3513
+# Epoch: 7 - Loss: 0.2778
+# Epoch: 8 - Loss: 0.2037
+# Epoch: 9 - Loss: 0.1288
+# Epoch: 10 - Loss: 0.0956
+# Epoch: 11 - Loss: 0.1343
+# Epoch: 12 - Loss: 0.0898
+# Epoch: 13 - Loss: 0.0857
+# Epoch: 14 - Loss: 0.0493
+# Epoch: 15 - Loss: 0.0840
+# Epoch: 16 - Loss: 0.0853
+# Epoch: 17 - Loss: 0.0559
+# Epoch: 18 - Loss: 0.0779
+# Epoch: 19 - Loss: 0.0292
+# Epoch: 20 - Loss: 0.0647
+# Epoch: 21 - Loss: 0.0473
+# Epoch: 22 - Loss: 0.0146
+# Epoch: 23 - Loss: 0.0570
+# Epoch: 24 - Loss: 0.0459
+# Epoch: 25 - Loss: 0.0703
+# Epoch: 26 - Loss: 0.0383
+# Epoch: 27 - Loss: 0.0793
+# Epoch: 28 - Loss: 0.0273
+# Epoch: 29 - Loss: 0.0303
+# --- 1282.694759130478 seconds ---
+# Test accuracy: 0.7133
+
 ### 20 epochs 4 Conv layers
 # Epoch: 0 - Loss: 1.7709
 # Epoch: 1 - Loss: 1.1802
@@ -391,41 +437,6 @@ if __name__ == "__main__":
 # Test accuracy: 0.7779
 
 
-# learning rate 0.002 and 30 epoch nope.
-# Epoch: 0 - Loss: 2.0310
-# Epoch: 1 - Loss: 1.2746
-# Epoch: 2 - Loss: 0.9880
-# Epoch: 3 - Loss: 0.7867
-# Epoch: 4 - Loss: 0.6283
-# Epoch: 5 - Loss: 0.4735
-# Epoch: 6 - Loss: 0.3513
-# Epoch: 7 - Loss: 0.2778
-# Epoch: 8 - Loss: 0.2037
-# Epoch: 9 - Loss: 0.1288
-# Epoch: 10 - Loss: 0.0956
-# Epoch: 11 - Loss: 0.1343
-# Epoch: 12 - Loss: 0.0898
-# Epoch: 13 - Loss: 0.0857
-# Epoch: 14 - Loss: 0.0493
-# Epoch: 15 - Loss: 0.0840
-# Epoch: 16 - Loss: 0.0853
-# Epoch: 17 - Loss: 0.0559
-# Epoch: 18 - Loss: 0.0779
-# Epoch: 19 - Loss: 0.0292
-# Epoch: 20 - Loss: 0.0647
-# Epoch: 21 - Loss: 0.0473
-# Epoch: 22 - Loss: 0.0146
-# Epoch: 23 - Loss: 0.0570
-# Epoch: 24 - Loss: 0.0459
-# Epoch: 25 - Loss: 0.0703
-# Epoch: 26 - Loss: 0.0383
-# Epoch: 27 - Loss: 0.0793
-# Epoch: 28 - Loss: 0.0273
-# Epoch: 29 - Loss: 0.0303
-# --- 1282.694759130478 seconds ---
-# Test accuracy: 0.7133
-
-
 # CUDA version: 12.8
 # Epoch: 0 - Loss: 2.1905
 # Epoch: 1 - Loss: 1.6136
@@ -468,3 +479,11 @@ if __name__ == "__main__":
 # Epoch: 49 - Loss: 0.0845
 # --- 1883.2752048969269 seconds ---
 # Test accuracy: 0.8929
+
+# Epoch: 55 - Loss: 0.0701
+# Epoch: 56 - Loss: 0.0847
+# Epoch: 57 - Loss: 0.0710
+# Epoch: 58 - Loss: 0.0492
+# Epoch: 59 - Loss: 0.0517
+# --- 2579.0179855823517 seconds ---
+# Test accuracy: 0.8763

@@ -136,16 +136,20 @@ class NeuronalNetwork:
         return: the activation value after applying dropout.
         """
         mask = (np.random.rand(*activation.shape) > self.dropout_rate).astype(float) / (
-            1 - self.dropout_rate
+            1 - self.dropout_rate  # scales up (inverted dropout)
         )
 
-        activation_dropout = activation * mask  # Scaling down.
+        activation_dropout = activation * mask
         self.dropout_masks.append(mask)
         # We store the mask of each layer into an array to later use it to apply inverted dropout.
         return activation_dropout
 
     def _inverted_dropout(self, da, layer):
-        """Inverted dropout applies the same mask used during the forward pass to deactivate the same neurons
+        """
+        Backward pass for inverted dropout.
+        Applies the same dropout mask used during the forward pass
+        to ensure that gradients are propagated only through the
+        active neurons and are scaled consistently.
 
         return: the derivative of the activation function.
         """
@@ -175,7 +179,7 @@ class NeuronalNetwork:
             return self._dropout(activation_current), (Z, W, b, activation_last)
         return activation_current, (Z, W, b, activation_last)
 
-    def forward_pass_output_layer(self, activation_last, W, b):
+    def _forward_pass_output_layer(self, activation_last, W, b):
         """
         function that is in charge to calculate the output layer forward pass,
         by either applying the softmax or sigmoid as activation functions, customizable
@@ -192,7 +196,7 @@ class NeuronalNetwork:
             activation_current, Z = sigmoid(Z)
         return activation_current, (Z, W, b, activation_last)
 
-    def forward_pass(self, X):
+    def _forward_pass(self, X):
         """
         Forward pass main function, in charge of handling the whole of the forward
         pass. It handles the hidden layers and the output layer.
@@ -226,7 +230,7 @@ class NeuronalNetwork:
             self.storage_layers.append(storage)
 
         # Output layer forward pass calculations.
-        activation_output, storage = self.forward_pass_output_layer(
+        activation_output, storage = self._forward_pass_output_layer(
             activation_current,
             self.param[f"W{self.num_layers}"],
             self.param[f"b{self.num_layers}"],
@@ -246,7 +250,7 @@ class NeuronalNetwork:
 
         return loss
 
-    def apply_regularisation(self, loss):
+    def _apply_regularisation(self, loss):
         """
         L1 / L2 Regularisation
 
@@ -287,7 +291,7 @@ class NeuronalNetwork:
 
         # if set, it applied the corresponding regularisations.
         if self.lambda_l1 or self.lambda_l2:
-            return self.apply_regularisation(loss)
+            return self._apply_regularisation(loss)
         return loss
 
     def _loss_calc_CCE(self, activation_last, y):
@@ -301,12 +305,14 @@ class NeuronalNetwork:
         loss = -np.mean(np.sum(y * np.log(activation_last + epsilon), axis=1))
         # if set, it applied the corresponding regularisations.
         if self.lambda_l1 or self.lambda_l2:
-            return self.apply_regularisation(loss)
+            return self._apply_regularisation(loss)
         return loss
 
     def _backward_pass_calc(self, dZ, layer):
         """
         handles all calculations of a single hidden layer during the backward pass.
+        If dropout has been activated it invoques de inverted dropout backward pass.
+        If L1/L2 regularisation lambdas parameters are set, the weights are updated acordingly.
         return:
         da: the derivative of the activation function of the next layer to continue the backward pass.
         dw: the derivative of the weights
@@ -450,7 +456,7 @@ class NeuronalNetwork:
     #         for j in range(0, X_train.shape[0]):
     #             X = X_train[j : j + 1]
     #             y = y_train[j : j + 1]
-    #             activation_last = self.forward_pass(X)
+    #             activation_last = self._forward_pass(X)
     #             if self.loss_function == "BCE":
     #                 total_loss += self._loss_calc_BCE(activation_last, y)
     #             if self.loss_function == "CCE":
@@ -461,8 +467,8 @@ class NeuronalNetwork:
     #         self.losses.append(total_loss_avg)
     #         if not i % 100:
     #             # checking the accuracy in the train and test set every 100 epochs.
-    #             train_acc = self.eval_accuracy(y_train, self.forward_pass(X_train))
-    #             test_acc = self.eval_accuracy(y_test, self.forward_pass(X_test))
+    #             train_acc = self.eval_accuracy(y_train, self._forward_pass(X_train))
+    #             test_acc = self.eval_accuracy(y_test, self._forward_pass(X_test))
     #             self.train_accuracy.append(train_acc)
     #             self.test_accuracy.append(test_acc)
 
@@ -478,7 +484,7 @@ class NeuronalNetwork:
             total_loss = 0  # establish the loss at 0 in every epoch
             for m in minibatches:
                 (X_train, y_train) = m
-                activation_last = self.forward_pass(X_train)  # forward pass iteration
+                activation_last = self._forward_pass(X_train)  # forward pass iteration
 
                 # depending on the loss function parameter it calculates the respective loss
                 # Categorical cross entropy
@@ -500,9 +506,9 @@ class NeuronalNetwork:
             if not i % 1:
                 # checking the accuracy in the train and test set every 100 epochs.
                 train_acc = self.eval_accuracy(
-                    y_train_full, self.forward_pass(X_train_full)
+                    y_train_full, self._forward_pass(X_train_full)
                 )
-                test_acc = self.eval_accuracy(y_test, self.forward_pass(X_test))
+                test_acc = self.eval_accuracy(y_test, self._forward_pass(X_test))
                 self.train_accuracy.append(train_acc)
                 self.test_accuracy.append(test_acc)
                 if self.verbose:
@@ -513,7 +519,7 @@ class NeuronalNetwork:
     def _fit_without_mini_batch(self, X_train, y_train, X_test, y_test):
         """Full neuronal network iteration using regular gradient descent"""
         for i in range(self.epoch):
-            activation_last = self.forward_pass(X_train)  # forward pass iteration
+            activation_last = self._forward_pass(X_train)  # forward pass iteration
 
             # depending on the loss function parameter it calculates the respective loss
             # Categorical cross entropy
@@ -531,7 +537,7 @@ class NeuronalNetwork:
             if not i % 100:
                 # checking the accuracy in the train and test set every 100 epochs.
                 train_acc = self.eval_accuracy(y_train, activation_last)
-                test_acc = self.eval_accuracy(y_test, self.forward_pass(X_test))
+                test_acc = self.eval_accuracy(y_test, self._forward_pass(X_test))
                 self.train_accuracy.append(train_acc)
                 self.test_accuracy.append(test_acc)
                 if self.verbose:
@@ -557,7 +563,7 @@ class NeuronalNetwork:
     def predict(self, X_test):
         """Predict function used to predict new values once the network has been trained"""
         self.dropout_rate = 0  # No dropout used during testing.
-        activation_last = self.forward_pass(X_test)  # Unchanged forward pass
+        activation_last = self._forward_pass(X_test)  # Unchanged forward pass
         return np.argmax(
             activation_last, axis=1
         )  # returns the index of the largest value along a axis 1
@@ -575,8 +581,8 @@ class NeuronalNetwork:
         return accuracy
 
     def create_confusion_matrixes(self, X_train, X_test, y_train, y_test):
-        y_train_pred = np.argmax(self.forward_pass(X_train), axis=1)
-        y_test_pred = np.argmax(self.forward_pass(X_test), axis=1)
+        y_train_pred = np.argmax(self._forward_pass(X_train), axis=1)
+        y_test_pred = np.argmax(self._forward_pass(X_test), axis=1)
         y_train_true = np.argmax(y_train, axis=1)
         y_test_true = np.argmax(y_test, axis=1)
         return y_train_pred, y_test_pred, y_train_true, y_test_true
