@@ -5,6 +5,9 @@ Important: recreate the results:
 
 To recreate the results it is mandatory to change the PATH variable that points to the two different datasets used for both tasks. This PATH variable is located in both python scripts called preprocessing.py which are in charge of loading the data and make the correct transformation for the posterior use in the models. 
 
+The Aerial Landscapes dataset is uploaded to the repo, but you can also find it and download it here and link the folder name in the PATH variable:
+https://www.kaggle.com/datasets/ankit1743/skyview-an-aerial-landscape-dataset
+
 A seed has been set for all results, value of the seed = 42. 
 
 Structure of the project: 
