@@ -27,9 +27,7 @@ NWPU-Resisc45 Dataset: https://paperswithcode.com/dataset/resisc45
 
 """
 
-# PATH = "C:/Users/bruno/OneDrive/Escritorio/Desktop/Repositories/Programming_math_Ai_Assessmment_Msc_Ai/dataset/Aerial_Landscapes/"
-
-PATH = "../../dataset/Aerial_Landscapes/"
+PATH = "C:/Users/bruno/OneDrive/Escritorio/Desktop/Repositories/Programming_math_Ai_Assessmment_Msc_Ai/dataset/Aerial_Landscapes/"
 
 
 def pre_processing_dataset(batch_size=32, train_test_split_n=0.2, seed=42, path=PATH):

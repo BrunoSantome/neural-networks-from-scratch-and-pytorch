@@ -405,27 +405,27 @@ class dnn_tests(unittest.TestCase):
             )
         )
 
-        # cm_train = confusion_matrix(y_train_true, y_train_pred)
-        # cm_test = confusion_matrix(y_test_true, y_test_pred)
-        # print(cm_train)
-        # disp_train = ConfusionMatrixDisplay(
-        #     confusion_matrix=cm_train, display_labels=[0, 1, 2]
-        # )
-        # disp_train.plot(cmap="Blues")
-        # plt.title("Train Confusion Matrix")
-        # plt.show()
+        cm_train = confusion_matrix(y_train_true, y_train_pred)
+        cm_test = confusion_matrix(y_test_true, y_test_pred)
+        print(cm_train)
+        disp_train = ConfusionMatrixDisplay(
+            confusion_matrix=cm_train, display_labels=[0, 1, 2]
+        )
+        disp_train.plot(cmap="Blues")
+        plt.title("Train Confusion Matrix")
+        plt.show()
 
-        # print(cm_test)
-        # disp_test = ConfusionMatrixDisplay(
-        #     confusion_matrix=cm_test, display_labels=[0, 1, 2]
-        # )
-        # disp_test.plot(cmap="Blues")
-        # plt.title("Test Confusion Matrix")
-        # plt.show()
+        print(cm_test)
+        disp_test = ConfusionMatrixDisplay(
+            confusion_matrix=cm_test, display_labels=[0, 1, 2]
+        )
+        disp_test.plot(cmap="Blues")
+        plt.title("Test Confusion Matrix")
+        plt.show()
 
-        # plot_loss(NNtest.losses, "Losses over epochs")
-        # plot_accuracy(NNtest.train_accuracy, "Training accuracy over epochs")
-        # plot_accuracy(NNtest.test_accuracy, "Testing accuracy over epochs")
+        plot_loss(NNtest.losses, "Losses over epochs")
+        plot_accuracy(NNtest.train_accuracy, "Training accuracy over epochs")
+        plot_accuracy(NNtest.test_accuracy, "Testing accuracy over epochs")
         print(NNtest.train_accuracy[-1])
         print(NNtest.test_accuracy[-1])
         print(NNtest.losses[-1])
@@ -477,21 +477,57 @@ if __name__ == "__main__":
     # Tests.test_fit_method_space_classification(2000)
     # Tests.test_fit_sgd_method_space_classification(100)
     # Tests.test_fit_mini_batches_method_space_classification(2000)
-    NN_hidden_architecture = [64, 128, 64, 32]
+    NN_hidden_architecture = [64, 32]
     Tests.tuning_hyperparameters(
-        description="Test4 architecture 1 layers, lr=0.01, mini-batch, relu hidden, gradient-descent without mini batch",
+        description="Test4 architecture 1 layers, lr=0.001, mini-batch, relu hidden, gradient-descent without mini batch",
         architecture=NN_hidden_architecture,
-        epoch=100,
-        learning_rate=0.001,
+        epoch=2000,
+        learning_rate=0.05,
         seed=42,
         hidden_activation="relu",
         output_activation="softmax",
-        dropout_rate=0.2,
+        dropout_rate=0,
         lambda_l1=0.0,
         lambda_l2=0.0,
         loss_function="CCE",
-        optimizer1="momentum",
+        optimizer1="gd",
         beta1=0.9,
         mini_batch=True,
-        mini_batch_size=64,
+        mini_batch_size=16,
     )
+
+    # Tests.tuning_hyperparameters(
+    #     description="Test4 architecture 1 layers, lr=0.001, mini-batch, relu hidden, gradient-descent without mini batch",
+    #     architecture=NN_hidden_architecture,
+    #     epoch=2000,
+    #     learning_rate=0.05,
+    #     seed=42,
+    #     hidden_activation="relu",
+    #     output_activation="softmax",
+    #     dropout_rate=0,
+    #     lambda_l1=0.0,
+    #     lambda_l2=0.0,
+    #     loss_function="CCE",
+    #     optimizer1="momentum",
+    #     beta1=0.9,
+    #     mini_batch=True,
+    #     mini_batch_size=32,
+    # )
+
+    # Tests.tuning_hyperparameters(
+    #     description="Test4 architecture 1 layers, lr=0.001, mini-batch, relu hidden, gradient-descent without mini batch",
+    #     architecture=NN_hidden_architecture,
+    #     epoch=2000,
+    #     learning_rate=0.05,
+    #     seed=42,
+    #     hidden_activation="relu",
+    #     output_activation="softmax",
+    #     dropout_rate=0,
+    #     lambda_l1=0.0,
+    #     lambda_l2=0.0,
+    #     loss_function="CCE",
+    #     optimizer1="gd",
+    #     beta1=0.9,
+    #     mini_batch=True,
+    #     mini_batch_size=16
+    # )

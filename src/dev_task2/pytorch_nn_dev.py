@@ -32,9 +32,6 @@ def swtich_to_cuda():
     return device
 
 
-PATH = "C:/Users/bruno/OneDrive/Escritorio/Desktop/Repositories/Programming_math_Ai_Assessmment_Msc_Ai/dataset/Aerial_Landscapes/"
-
-
 class NeuralNetwork(nn.Module):
     def __init__(self):
         super().__init__()
@@ -208,7 +205,7 @@ def run_CNN_model(device, X_train, y_test):
 
 if __name__ == "__main__":
     set_seed(42)
-    X_train, y_test = pre_processing_dataset(path=PATH)
+    X_train, y_test = pre_processing_dataset()
     device = swtich_to_cuda()
 
     ##############Neuronal network model###########33333
@@ -346,7 +343,7 @@ if __name__ == "__main__":
 # --- 1282.694759130478 seconds ---
 # Test accuracy: 0.7133
 
-### 20 epochs 4 Conv layers
+### 20 epochs 4 Conv layers 0.001
 # Epoch: 0 - Loss: 1.7709
 # Epoch: 1 - Loss: 1.1802
 # Epoch: 2 - Loss: 0.9443
@@ -487,3 +484,14 @@ if __name__ == "__main__":
 # Epoch: 59 - Loss: 0.0517
 # --- 2579.0179855823517 seconds ---
 # Test accuracy: 0.8763
+
+# 4 Convolutional networks, dropout and Adaptativepooling
+# Epoch: 43 - Loss: 0.2315
+# Epoch: 44 - Loss: 0.2306
+# Epoch: 45 - Loss: 0.2383
+# Epoch: 46 - Loss: 0.1938
+# Epoch: 47 - Loss: 0.1907
+# Epoch: 48 - Loss: 0.2019
+# Epoch: 49 - Loss: 0.1770
+# --- 2126.95081448555 seconds ---
+# Test accuracy: 0.8808
