@@ -96,8 +96,9 @@ class CNN(nn.Module):
         return x
 
 
-def train_network(model, optimizer, loss_function, num_epochs, X_train, device):
+def train_network(model, optimizer, loss_function, num_epochs, X_train, Y_test, device):
     loss_across_epochs = []
+    accuracy_across_epochs = []
     time_start = time.time()
     for epoch in range(num_epochs):
         model.train()
@@ -113,53 +114,72 @@ def train_network(model, optimizer, loss_function, num_epochs, X_train, device):
             optimizer.step()
             train_loss += loss.item() * inputs.size(0)
         num_samples = len(X_train.dataset)
-        loss_across_epochs.append(train_loss / num_samples)
-        print(f"Epoch: {epoch} - Loss: {train_loss / num_samples:.4f}")
+        current_loss = train_loss / num_samples
+        loss_across_epochs.append(current_loss)
+        test_acc = evaluate_network(model, y_test, device)
+        accuracy_across_epochs.append(test_acc)
+        print(f"Epoch {epoch} / Loss: {current_loss} / Test Accuracy: {test_acc}")
         # if epoch % 10 == 0:
         #     print(f"Epoch: {epoch} - Loss: {train_loss / num_samples:.4f}")
-    print("--- %s seconds ---" % (time.time() - time_start))
+    print(f"--- {time.time() - time_start} seconds ---")
 
-    return loss_across_epochs
+    return loss_across_epochs, accuracy_across_epochs
 
 
-def evaluate_model(model, test_set, losses, device):
+def evaluate_network(model, test_loader, device):
+    model.eval()
     acc = Accuracy(task="multiclass", num_classes=15).to(device)
 
-    model.eval()
-    batch_accuracies = []
     with torch.no_grad():
-        for inputs, labels in test_set:
+        for inputs, labels in test_loader:
             inputs = inputs.to(device)
             labels = labels.to(device)
+
             outputs = model(inputs)
             preds = outputs.argmax(dim=1)
-            acc(preds, labels)
+            acc.update(preds, labels)
 
-            batch_acc = (preds == labels).float().mean().item()
-            batch_accuracies.append(batch_acc)
+    accuracy = acc.compute().item()
+    return accuracy
 
-    test_accuracy = acc.compute().item()
-    print(f"Test accuracy: {test_accuracy:.4f}")
 
-    plt.figure(figsize=(8, 4))
-    plt.plot(batch_accuracies, marker="o")
-    plt.xlabel("Batch")
-    plt.ylabel("Accuracy")
-    plt.title("Batch-wise Accuracy")
-    plt.grid(True)
-    plt.show()
-    return test_accuracy
+# def evaluate_model(model, test_set, losses, device):
+#     acc = Accuracy(task="multiclass", num_classes=y_test).to(device)
 
-    # Compute total test accuracy
-    # test_accuracy = acc.compute()
-    # print(f"Test accuracy: {test_accuracy}")
-    # plt.figure()
-    # plt.plot(batch_accuracies)
-    # plt.xlabel("Batch index")
-    # plt.ylabel("Accuracy")
-    # plt.title("Batch Accuracy on Test Set")
-    # plt.ylim(0, 1)
-    # plt.show()
+#     model.eval()
+#     batch_accuracies = []
+#     with torch.no_grad():
+#         for inputs, labels in test_set:
+#             inputs = inputs.to(device)
+#             labels = labels.to(device)
+#             outputs = model(inputs)
+#             preds = outputs.argmax(dim=1)
+#             acc(preds, labels)
+#             batch_acc = (preds == labels).float().mean().item()
+#             batch_accuracies.append(batch_acc)
+
+#     test_accuracy = acc.compute().item()
+#     print(f"Test accuracy: {test_accuracy:.4f}")
+
+#     plt.figure(figsize=(8, 4))
+#     plt.plot(batch_accuracies, marker="o")
+#     plt.xlabel("Batch")
+#     plt.ylabel("Accuracy")
+#     plt.title("Batch Accuracy")
+#     plt.grid(True)
+#     plt.show()
+#     return test_accuracy
+
+# Compute total test accuracy
+# test_accuracy = acc.compute()
+# print(f"Test accuracy: {test_accuracy}")
+# plt.figure()
+# plt.plot(batch_accuracies)
+# plt.xlabel("Batch index")
+# plt.ylabel("Accuracy")
+# plt.title("Batch Accuracy on Test Set")
+# plt.ylim(0, 1)
+# plt.show()
 
 
 def plot_losses(losses):
@@ -169,6 +189,16 @@ def plot_losses(losses):
     plt.xlabel("Epoch")
     plt.ylabel("Training Loss")
     plt.title("Training Loss over Epochs")
+    plt.grid(True)
+    plt.show()
+
+
+def plot_accuracies(accuracies):
+    plt.figure(figsize=(8, 5))
+    plt.plot(accuracies, marker="o")
+    plt.xlabel("Epoch")
+    plt.ylabel("Accuracy test set")
+    plt.title("Accuracies over Epochs")
     plt.grid(True)
     plt.show()
 
@@ -184,10 +214,11 @@ def run_NN_model(device, X_train, y_test):
     #     model_NN.parameters(), lr=3e-4, weight_decay=1e-4
     # )
     # Train model
-    lossNN = train_network(
-        model_NN, adam_optimizer, nn.CrossEntropyLoss(), 50, X_train, device
+    lossNN, accuraciesNN = train_network(
+        model_NN, adam_optimizer, nn.CrossEntropyLoss(), 50, X_train, y_test, device
     )
-    evaluate_model(model_NN, y_test, lossNN, device)
+    # evaluate_model(model_NN, y_test, lossNN, device)
+    plot_accuracies(accuraciesNN)
     plot_losses(lossNN)
 
 
@@ -196,10 +227,17 @@ def run_CNN_model(device, X_train, y_test):
     model_CNN = CNN(3, 15).to(device)
     optimizer_CNN = torch.optim.Adam(model_CNN.parameters(), lr=0.001)
     loss_fn = nn.CrossEntropyLoss()
-    lossCNN = train_network(
-        model_CNN, optimizer_CNN, loss_fn, num_epochs=10, X_train=X_train, device=device
+    lossCNN, accuraciesCNN = train_network(
+        model_CNN,
+        optimizer_CNN,
+        loss_fn,
+        num_epochs=50,
+        X_train=X_train,
+        Y_test=y_test,
+        device=device,
     )
-    evaluate_model(model_CNN, y_test, lossCNN, device)
+    # evaluate_model(model_CNN, y_test, lossCNN, device)
+    plot_accuracies(accuraciesCNN)
     plot_losses(lossCNN)
 
 
@@ -208,24 +246,11 @@ if __name__ == "__main__":
     X_train, y_test = pre_processing_dataset()
     device = swtich_to_cuda()
 
-    ##############Neuronal network model###########33333
+    ############## Neuronal network model #####################
     # run_NN_model(device, X_train, y_test)
 
-    ##############Convolutional Neuronal network model###############
-    # run_CNN_model(device, X_train, y_test)
-    model_CNN = CNN(3, 15).to(device)
-    optimizer_CNN = torch.optim.Adam(model_CNN.parameters(), lr=0.001)
-    loss_fn = nn.CrossEntropyLoss()  # Check this
-    lossCNN = train_network(
-        model_CNN,
-        optimizer_CNN,
-        loss_fn,
-        num_epochs=50,
-        X_train=X_train,
-        device=device,
-    )
-    evaluate_model(model_CNN, y_test, lossCNN, device)
-    plot_losses(lossCNN)
+    ############# Convolutional Neuronal network model ########
+    run_CNN_model(device, X_train, y_test)
 
 ##################### NN TESTS #############3
 ###########
@@ -250,7 +275,6 @@ if __name__ == "__main__":
 # Epoch: 4 - Loss: 2.7101
 # Epoch: 5 - Loss: 2.7100
 
-
 # --- 846.3008494377136 seconds --- without betas and eps
 # Test accuracy: 0.3454166650772095 with 20 epoch.
 # adam_optimizer = torch.optim.Adam(model_NN.parameters(), lr=0.001, weight_decay=0.0)
@@ -263,7 +287,6 @@ if __name__ == "__main__":
 ####--- 1481.3784992694855 seconds --- 50 epoch. # A lot of images and large and regular neuronal network → too many parameters, slow learning.
 
 # Test accuracy: 0.3442 #Accuracy has not improved
-
 
 ############## CNN TESTS##############
 
