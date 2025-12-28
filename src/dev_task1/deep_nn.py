@@ -503,7 +503,7 @@ class NeuronalNetwork:
 
             # In every 100 epoch it adds the training accuracy and the test accuracy
 
-            if not i % 10:
+            if not i % 1:
                 # checking the accuracy in the train and test set every 100 epochs.
                 train_acc = self.eval_accuracy(
                     y_train_full, self._forward_pass(X_train_full)
@@ -534,7 +534,7 @@ class NeuronalNetwork:
             self._update_param()
             # In every 100 epoch it adds the training accuracy and the test accuracy
             # todo: what if there is less than 100 epoch given?
-            if not i % 10:
+            if not i % 1:
                 # checking the accuracy in the train and test set every 100 epochs.
                 train_acc = self.eval_accuracy(y_train, activation_last)
                 test_acc = self.eval_accuracy(y_test, self._forward_pass(X_test))

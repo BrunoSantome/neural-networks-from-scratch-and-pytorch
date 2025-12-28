@@ -21,6 +21,7 @@ def set_seed(seed=42):
 
 
 def swtich_to_cuda():
+    """Method to switch to cuda GPU"""
     print(sys.executable)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     print(f"Using {device}")
@@ -33,6 +34,8 @@ def swtich_to_cuda():
 
 
 class NeuralNetwork(nn.Module):
+    """Neural network class First model"""
+
     def __init__(self):
         super().__init__()
         self.flatten = nn.Flatten()
@@ -52,6 +55,8 @@ class NeuralNetwork(nn.Module):
 
 
 class CNN(nn.Module):
+    """Convolutional neural network class Second Model"""
+
     # Large images + MLP → too many parameters, slow learning.
     def __init__(self, in_channels, num_classes):
         super(CNN, self).__init__()
@@ -97,6 +102,7 @@ class CNN(nn.Module):
 
 
 def train_network(model, optimizer, loss_function, num_epochs, X_train, Y_test, device):
+    """Training function for any model"""
     loss_across_epochs = []
     accuracy_across_epochs = []
     time_start = time.time()
@@ -127,6 +133,7 @@ def train_network(model, optimizer, loss_function, num_epochs, X_train, Y_test, 
 
 
 def evaluate_network(model, test_loader, device):
+    """evaluates the accuracy of the test set"""
     model.eval()
     acc = Accuracy(task="multiclass", num_classes=15).to(device)
 

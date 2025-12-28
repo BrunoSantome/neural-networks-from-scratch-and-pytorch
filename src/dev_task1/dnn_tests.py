@@ -371,7 +371,7 @@ class dnn_tests(unittest.TestCase):
     ):
         X_train, y_train, X_test, y_test = load_and_preprocess_data_spacial_objects()
         hidden_layers_units = []
-        architecture = [16, 8]  # Example architecture
+        # architecture = [16, 8]  # Example architecture
         hidden_layers_units.append(X_train.shape[1])
         hidden_layers_units.extend(architecture)
         hidden_layers_units.append(y_test.unique().shape[0])
@@ -405,23 +405,23 @@ class dnn_tests(unittest.TestCase):
             )
         )
 
-        cm_train = confusion_matrix(y_train_true, y_train_pred)
-        cm_test = confusion_matrix(y_test_true, y_test_pred)
-        print(cm_train)
-        disp_train = ConfusionMatrixDisplay(
-            confusion_matrix=cm_train, display_labels=[0, 1, 2]
-        )
-        disp_train.plot(cmap="Blues")
-        plt.title("Train Confusion Matrix")
-        plt.show()
+        # cm_train = confusion_matrix(y_train_true, y_train_pred)
+        # cm_test = confusion_matrix(y_test_true, y_test_pred)
+        # print(cm_train)
+        # disp_train = ConfusionMatrixDisplay(
+        #     confusion_matrix=cm_train, display_labels=[0, 1, 2]
+        # )
+        # disp_train.plot(cmap="Blues")
+        # plt.title("Train Confusion Matrix")
+        # plt.show()
 
-        print(cm_test)
-        disp_test = ConfusionMatrixDisplay(
-            confusion_matrix=cm_test, display_labels=[0, 1, 2]
-        )
-        disp_test.plot(cmap="Blues")
-        plt.title("Test Confusion Matrix")
-        plt.show()
+        # print(cm_test)
+        # disp_test = ConfusionMatrixDisplay(
+        #     confusion_matrix=cm_test, display_labels=[0, 1, 2]
+        # )
+        # disp_test.plot(cmap="Blues")
+        # plt.title("Test Confusion Matrix")
+        # plt.show()
 
         plot_loss(NNtest.losses, "Losses over epochs")
         plot_accuracy(NNtest.train_accuracy, "Training accuracy over epochs")
@@ -477,18 +477,18 @@ if __name__ == "__main__":
     # Tests.test_fit_method_space_classification(2000)
     # Tests.test_fit_sgd_method_space_classification(100)
     # Tests.test_fit_mini_batches_method_space_classification(2000)
-    NN_hidden_architecture = [64, 32]
+    NN_hidden_architecture = [32, 16]
     Tests.tuning_hyperparameters(
         description="Test4 architecture 1 layers, lr=0.001, mini-batch, relu hidden, gradient-descent without mini batch",
         architecture=NN_hidden_architecture,
-        epoch=2000,
+        epoch=100,
         learning_rate=0.05,
         seed=42,
         hidden_activation="relu",
         output_activation="softmax",
         dropout_rate=0,
         lambda_l1=0.0,
-        lambda_l2=0.0,
+        lambda_l2=0,
         loss_function="CCE",
         optimizer1="gd",
         beta1=0.9,
