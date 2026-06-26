@@ -140,8 +140,8 @@ Full per‑experiment logs for Task 1 live in [`hyperparameter_tuning_results.xl
 
 ```bash
 # 1. Clone
-git clone https://github.com/BrunoSantome/Programming_math_Ai_Assessmment_Msc_Ai.git
-cd Programming_math_Ai_Assessmment_Msc_Ai
+git clone https://github.com/BrunoSantome/neural-networks-from-scratch-and-pytorch.git
+cd neural-networks-from-scratch-and-pytorch
 
 # 2. Install dependencies
 pip install numpy pandas scikit-learn matplotlib torch torchvision torchmetrics openpyxl
