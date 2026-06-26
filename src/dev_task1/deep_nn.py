@@ -9,29 +9,7 @@ from dnn_functions import (
 )
 
 
-class NeuronalNetwork:
-    """
-    Initializes a Neural Network (NN) model with customizable parameters.
-
-    Args:
-
-        hidden_layers_units (list): List containing the number of units in each layer of the network.
-        epoch (int): Number of training epochs. Default is 100.
-        learning_rate (float): Learning rate for weight updates. Default is 0.01.
-        seed (int): Random seed for reproducibility. Default is 42.
-        hidden_activation (str): Activation function for hidden layers ('relu' or 'sigmoid'). Default is 'relu'.
-        output_activation (str): Activation function for output layer ('sigmoid' or 'softmax'). Default is 'sigmoid'.
-        dropout_rate (float): Dropout rate for regularization (0 to 1). Default is 0. (no dropout).
-        lambda_l1 (float): L1 regularization parameter. Default is 0.0.
-        lambda_l2 (float): L2 regularization parameter. Default is 0.0.
-        loss_function (str): Loss function to use ('BCE' or 'CCE'). Default is 'CCE'.
-        optimizer1 (str): Optimization algorithm ('gd' for gradient descent, 'momentum' for momentum). Default is 'gd'.
-        beta1 (float): Momentum beta parameter. Default is 0.9.
-        mini_batch (bool): Whether to use mini-batch gradient descent. Default is False.
-        mini_batch_size (int): Size of each mini-batch if mini_batch is True. Default is 64.
-
-    """
-
+class NeuralNetwork:
     def __init__(
         self,
         hidden_layers_units,

@@ -20,7 +20,7 @@ def set_seed(seed=42):
         torch.cuda.manual_seed_all(seed)
 
 
-def swtich_to_cuda():
+def switch_to_cuda():
     """Method to switch to cuda GPU"""
     print(sys.executable)
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
@@ -251,7 +251,7 @@ def run_CNN_model(device, X_train, y_test):
 if __name__ == "__main__":
     set_seed(42)
     X_train, y_test = pre_processing_dataset()
-    device = swtich_to_cuda()
+    device = switch_to_cuda()
 
     ############## Neuronal network model #####################
     # run_NN_model(device, X_train, y_test)

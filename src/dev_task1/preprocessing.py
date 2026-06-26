@@ -32,7 +32,7 @@ def load_and_preprocess_data_spacial_objects():
     )
 
     # df.isna().sum()
-
+    df.drop_duplicates()
     df["class"] = df["class"].replace({"GALAXY": 0, "QSO": 1, "STAR": 2})
 
     df.head()

@@ -1,7 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import unittest
-from deep_nn import NeuronalNetwork
+from deep_nn import NeuralNetwork
 from sklearn.datasets import make_moons
 import numpy as np
 import pandas as pd
@@ -30,7 +30,7 @@ class dnn_tests(unittest.TestCase):
         # todo: important make a method to input data and transform that data into the first input layer
         nn_architecture1 = [2, 4, 4, 1]
         nn_architecture2 = [8, 4, 2, 1]
-        NNTest = NeuronalNetwork(nn_architecture1)
+        NNTest = NeuralNetwork(nn_architecture1)
         parameters = NNTest._init_param()
 
     def test_forward_pass(self):
@@ -40,7 +40,7 @@ class dnn_tests(unittest.TestCase):
         X = np.random.randn(3, 2)
         # print(X)
         nn_architecture1 = [2, 4, 1]
-        NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
+        NNTest2 = NeuralNetwork(nn_architecture1, seed=42)
         NNTest2._init_param()
         print(NNTest2.forward_pass(X).shape)
 
@@ -50,7 +50,7 @@ class dnn_tests(unittest.TestCase):
         X = np.random.randn(num_values, 3)
 
         nn_architecture1 = [4, 4, 1]
-        NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
+        NNTest2 = NeuralNetwork(nn_architecture1, seed=42)
         NNTest2._init_param()
         NNTest2.forward_pass(X)
         NNTest2._loss_calc_CCE()
@@ -62,7 +62,7 @@ class dnn_tests(unittest.TestCase):
         X = np.random.randn(num_values, features)
         y = np.random.randn(1, num_values).T
         nn_architecture1 = [features, 4, 1]
-        NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
+        NNTest2 = NeuralNetwork(nn_architecture1, seed=42)
         NNTest2._init_param()
         activation_last = NNTest2.forward_pass(X)
         NNTest2.backward_pass(activation_last, y)
@@ -74,7 +74,7 @@ class dnn_tests(unittest.TestCase):
         X = np.random.randn(num_values, features)
         y = np.random.randn(1, num_values).T  # Still dont understand why the transpose.
         nn_architecture1 = [features, 4, 1]
-        NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
+        NNTest2 = NeuralNetwork(nn_architecture1, seed=42)
         NNTest2._init_param()
         activation_last = NNTest2.forward_pass(X)
         NNTest2.backward_pass(activation_last, y)
@@ -87,7 +87,7 @@ class dnn_tests(unittest.TestCase):
         X = np.random.randn(num_values, features)
         y = np.random.randint(0, 2, size=(num_values, 1))
         nn_architecture1 = [features, 4, 1]
-        NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
+        NNTest2 = NeuralNetwork(nn_architecture1, seed=42)
         NNTest2._init_param()
         losses = []
         for i in range(epoch):
@@ -107,7 +107,7 @@ class dnn_tests(unittest.TestCase):
         y = np.random.randint(0, 2, size=(num_values, 1))
         print
         nn_architecture1 = [features, 4, 1]
-        NNTest2 = NeuronalNetwork(nn_architecture1, seed=42, dropout_rate=dropout_rate)
+        NNTest2 = NeuralNetwork(nn_architecture1, seed=42, dropout_rate=dropout_rate)
         NNTest2._init_param()
         losses = []
         for i in range(epoch):
@@ -123,7 +123,7 @@ class dnn_tests(unittest.TestCase):
         X_clf, y_clf = make_moons(n_samples=300, noise=0.15, random_state=1)
         y_clf = y_clf.reshape(-1, 1)
         nn_architecture1 = [X_clf.shape[1], 8, 1]
-        NNTest2 = NeuronalNetwork(nn_architecture1, seed=42)
+        NNTest2 = NeuralNetwork(nn_architecture1, seed=42)
         NNTest2._init_param()
         losses = []
         for i in range(epoch):
@@ -143,7 +143,7 @@ class dnn_tests(unittest.TestCase):
         y_clf = y_clf.reshape(-1, 1)
         y_onehot = np.eye(2)[y_clf.ravel()]  # transform output so it accepts CCE
         nn_architecture1 = [X_clf.shape[1], 8, 2]
-        NNTest2 = NeuronalNetwork(
+        NNTest2 = NeuralNetwork(
             nn_architecture1,
             seed=42,
             lambda_l1=0.001,
@@ -170,7 +170,7 @@ class dnn_tests(unittest.TestCase):
         X_clf, y_clf = make_moons(n_samples=300, noise=0.15, random_state=1)
         y_clf = y_clf.reshape(-1, 1)
         nn_architecture1 = [X_clf.shape[1], 8, 1]
-        NNTest2 = NeuronalNetwork(nn_architecture1, lambda_l2=0.001, seed=42)
+        NNTest2 = NeuralNetwork(nn_architecture1, lambda_l2=0.001, seed=42)
         NNTest2._init_param()
         losses = []
         for i in range(epoch):
@@ -190,7 +190,7 @@ class dnn_tests(unittest.TestCase):
         y_clf = y_clf.reshape(-1, 1)
         y_onehot = np.eye(2)[y_clf.ravel()]  # transform output so it accepts CCE
         nn_architecture1 = [X_clf.shape[1], 8, 2]
-        NNTest2 = NeuronalNetwork(
+        NNTest2 = NeuralNetwork(
             nn_architecture1,
             seed=42,
             output_activation="softmax",
@@ -216,7 +216,7 @@ class dnn_tests(unittest.TestCase):
         nn_architecture1 = [X_train.shape[1], 16, 8, 3]
         y_train_onehot = np.eye(3)[y_train.to_numpy()]
         y_test_onehot = np.eye(3)[y_test.to_numpy()]
-        NNtest = NeuronalNetwork(
+        NNtest = NeuralNetwork(
             nn_architecture1,
             seed=42,
             hidden_activation="relu",
@@ -250,7 +250,7 @@ class dnn_tests(unittest.TestCase):
         nn_architecture1 = [X_train.shape[1], 16, 8, 3]
         y_train_onehot = np.eye(3)[y_train.to_numpy()]
         y_test_onehot = np.eye(3)[y_test.to_numpy()]
-        NNtest = NeuronalNetwork(
+        NNtest = NeuralNetwork(
             nn_architecture1,
             seed=42,
             hidden_activation="relu",
@@ -284,7 +284,7 @@ class dnn_tests(unittest.TestCase):
         nn_architecture1 = [X_train.shape[1], 16, 8, 3]
         y_train_onehot = np.eye(3)[y_train.to_numpy()]
         y_test_onehot = np.eye(3)[y_test.to_numpy()]
-        NNtest = NeuronalNetwork(
+        NNtest = NeuralNetwork(
             nn_architecture1,
             seed=42,
             hidden_activation="relu",
@@ -316,7 +316,7 @@ class dnn_tests(unittest.TestCase):
         # It performs so much better and so much quicker with mini batches.
         X_train, y_train, X_test, y_test = load_and_preprocess_data_spacial_objects()
         nn_architecture1 = [X_train.shape[1], 16, 4, 3]
-        NNtest = NeuronalNetwork(
+        NNtest = NeuralNetwork(
             nn_architecture1,
             seed=42,
             hidden_activation="relu",
@@ -377,7 +377,7 @@ class dnn_tests(unittest.TestCase):
         hidden_layers_units.append(y_test.unique().shape[0])
         # hidden_layers_units = [X_train.shape[1], 8, 3]
 
-        NNtest = NeuronalNetwork(
+        NNtest = NeuralNetwork(
             hidden_layers_units,
             seed=seed,
             hidden_activation=hidden_activation,
@@ -479,7 +479,7 @@ if __name__ == "__main__":
     # Tests.test_fit_mini_batches_method_space_classification(2000)
     NN_hidden_architecture = [32, 16]
     Tests.tuning_hyperparameters(
-        description="Test4 architecture 1 layers, lr=0.001, mini-batch, relu hidden, gradient-descent without mini batch",
+        description="",
         architecture=NN_hidden_architecture,
         epoch=100,
         learning_rate=0.05,
