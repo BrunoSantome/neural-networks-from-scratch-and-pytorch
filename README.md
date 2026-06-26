@@ -11,14 +11,7 @@
   <img alt="Reproducible" src="https://img.shields.io/badge/seed-42-success">
 </p>
 
-<<<<<<< HEAD
 ---
-=======
-Task 1, the dataset is included in the repo but the path in the preprocessing.py python script needs to be changed to direct to your local path.
-
-Task 2, The Aerial Landscapes dataset needs to be downloaded here and link the folder name in the PATH variable of the preprocessing.py of the task 2 folder:
-https://www.kaggle.com/datasets/ankit1743/skyview-an-aerial-landscape-dataset
->>>>>>> 5008a7dd803f5a950eecdaa1f062ace993efa3db
 
 ## Why this repository is worth a look
 
@@ -173,7 +166,10 @@ cd src/dev_task2
 python pytorch_nn_dev.py
 ```
 
-> The SkyView dataset is included in the repo; it is also available on Kaggle:
+> **Datasets** — Task 1's SDSS DR18 CSV is bundled in the repo; just repoint the `PATH`
+> in `src/dev_task1/preprocessing.py` to your local copy. The Task 2 SkyView dataset is
+> also included, and can otherwise be downloaded from Kaggle and linked via the `PATH`
+> in `src/dev_task2/preprocessing.py`:
 > <https://www.kaggle.com/datasets/ankit1743/skyview-an-aerial-landscape-dataset>
 >
 > A seed of `42` is fixed throughout for reproducibility.
@@ -188,5 +184,3 @@ python pytorch_nn_dev.py
 - **PyTorch** — custom `nn.Module` models, CNN architecture design, `DataLoader` pipelines, CUDA training, `torchmetrics`.
 - **ML engineering** — leakage‑free preprocessing, class‑imbalance diagnosis, systematic & logged hyperparameter tuning, over‑fitting awareness.
 - **Software practice** — modular, documented code with a clear separation of data, models and experiments.
-</content>
-</invoke>
