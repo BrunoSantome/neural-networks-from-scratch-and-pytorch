@@ -11,7 +11,14 @@
   <img alt="Reproducible" src="https://img.shields.io/badge/seed-42-success">
 </p>
 
+<<<<<<< HEAD
 ---
+=======
+Task 1, the dataset is included in the repo but the path in the preprocessing.py python script needs to be changed to direct to your local path.
+
+Task 2, The Aerial Landscapes dataset needs to be downloaded here and link the folder name in the PATH variable of the preprocessing.py of the task 2 folder:
+https://www.kaggle.com/datasets/ankit1743/skyview-an-aerial-landscape-dataset
+>>>>>>> 5008a7dd803f5a950eecdaa1f062ace993efa3db
 
 ## Why this repository is worth a look
 
